@@ -216,6 +216,7 @@ const addvendor = async (req, res) => {
       email: email,
       phone: phone,
       password: hashpassword,
+      role:1,
       address: address,
       vendor_id: vendordata._id,
     });
@@ -467,6 +468,7 @@ const addvuser = async (req, res) => {
     }
 
     const hashpassword = await bcrypt.hash(password, 10);
+    const vendordata = await User.findById(req.user._id);
 
     const vuserdata = new Vuser({
       name: name,
@@ -476,7 +478,7 @@ const addvuser = async (req, res) => {
       address: address,
       aadharno: aadharno,
       pan: pan,
-      vendor_id: req.user.id,
+      vendor_id: vendordata.vendor_id,
     });
 
     await vuserdata.save();
@@ -511,8 +513,9 @@ const addvuser = async (req, res) => {
       phone: phone,
       password: hashpassword,
       address: address,
+      role:2,
       vuser_id: vuserdata._id,
-      vendor_id: vuserdata.vendor_id,
+      vendor_id: vendordata.vendor_id,
     });
 
     vuserdata1.save();
@@ -623,6 +626,7 @@ const getvuser_vendorwise = async (req, res) => {
 const delete_vuser = async(req,res)=>{
   try {
     const deletevuserdata = await Vuser.findByIdAndDelete(req.params.id);
+    const deletevuser = await User.findOneAndDelete({vuser_id:req.params.id});
     res.status(200).send({
       success: true,
       msg: "delete vuser successfully",
