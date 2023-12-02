@@ -55,7 +55,7 @@ const add_transaction = async (req, res) => {
       msg: "order added successfully",
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return res.status(500).send({
       success: false,
       msg: "error in add_transaction",
@@ -73,7 +73,7 @@ const get_transaction = async (req, res) => {
       getdata,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return res.status(500).send({
       success: false,
       msg: "error in get",
@@ -106,7 +106,7 @@ const update_transaction = async (req, res) => {
       updatedata,
     });
   } catch (error) {
-    console.log(error);
+    // console.log(error);
     return res.status(500).send({
       success: false,
       msg: "error in update-transaction",
