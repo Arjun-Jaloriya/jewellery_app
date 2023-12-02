@@ -19,14 +19,6 @@ const Userschema = new mongoose.Schema({
     type: Number,
     default: 1,
   },
-  vendor_id:{
-    type: mongoose.ObjectId,
-    ref: "Vendor",
-  },
-  vuser_id:{
-    type: mongoose.ObjectId,
-    ref: "Vuser",
-  }
 },
 { timestamps: true });
 
