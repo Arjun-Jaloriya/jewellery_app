@@ -15,7 +15,7 @@ const {User} = require("../Models/User");
         return res.send("please login")
         }
     } catch (error) {
-      console.log(error);
+      // console.log(error);
     }
 }
 
