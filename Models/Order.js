@@ -31,6 +31,10 @@ const OrderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    advance_payment:{
+      type:Number,
+      required:true,
+    },
     remainingAmount: {
       type: Number,
   
@@ -47,8 +51,8 @@ const OrderSchema = new mongoose.Schema(
     },
     transactions: [
       {
-        amount: {type:Number},
-        date: {type:Date},
+        amount: {type:Number,default:0},
+        date: {type:Date,default:new Date()},
       },
     ],
   },

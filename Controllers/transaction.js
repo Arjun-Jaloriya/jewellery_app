@@ -10,7 +10,7 @@ const add_transaction = async (req, res) => {
       items,
       isFullPayment,
       total_amount,
-      remainingAmount,
+      advance_payment,
       dueDate,
       paymentType,
       transactions,
@@ -24,15 +24,18 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "address is required" });
       case !items:
         return res.send({ error: "items is required" });
-      case !isFullPayment:
-        return res.send({ error: "isFullPayment is required" });
+      case !total_amount:
+        return res.send({ error: "total_amount is required" });
+      case !advance_payment:
+        return res.send({ error: "advance_payment is required" });
       case !dueDate:
         return res.send({ error: "dueDate is required" });
       case !paymentType:
         return res.send({ error: "paymentType is required" });
-      case !transactions:
-        return res.send({ error: "transactions is required" });
+     
     }
+
+    const remainpayment = total_amount - advance_payment;
 
     const adddata = new Order({
       customerName,
@@ -41,10 +44,11 @@ const add_transaction = async (req, res) => {
       items,
       isFullPayment,
       total_amount,
-      remainingAmount,
+      advance_payment,
+      remainingAmount:remainpayment,
       dueDate,
       paymentType,
-      transactions,
+      transactions:[{amount:advance_payment}],
     }).save();
     res.status(200).send({
       success: true,
@@ -81,9 +85,18 @@ const get_transaction = async (req, res) => {
 const update_transaction = async (req, res) => {
   try {
     const { transactions } = req.body;
+    const lastOrder = await Order.findById(req.params.id);
+
+    // Calculate the updated remaining amount
+    const updatedRemainingAmount =
+      lastOrder.remainingAmount - transactions[0].amount;
+
     const updatedata = await Order.findByIdAndUpdate(
       req.params.id,
-      { $push: { transactions: transactions } },
+      {
+        $push: { transactions: transactions },
+        $set: { remainingAmount: updatedRemainingAmount },
+      },
       { new: true, useFindAndModify: false }
     );
 
