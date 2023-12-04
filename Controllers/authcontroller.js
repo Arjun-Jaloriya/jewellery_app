@@ -63,7 +63,7 @@ const login = async (req, res) => {
       return res.send({ message: "Email and password is Required" });
     }
 
-    const user = await User.findOne({ email: email });
+    let user = await User.findOne({ email: email });
 
     if (!user) {
       return res.status(404).send({
@@ -96,7 +96,7 @@ const login = async (req, res) => {
       { token: token },
       { new: true }
     );
-    console.log(req.user);
+   
     res.status(200).send({
       success: true,
       msg: `${user.name}-you are successfully login`,
@@ -112,9 +112,11 @@ const login = async (req, res) => {
       token,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).send({
       success: false,
       msg: "error in login",
+      error
     });
   }
 };
