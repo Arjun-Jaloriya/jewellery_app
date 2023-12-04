@@ -91,8 +91,12 @@ const login = async (req, res) => {
       expiresIn: "7d",
     });
 
-    user.tokens = await user.tokens.concat({ token: token });
-    await user.save();
+    user.token = await User.findByIdAndUpdate(
+      req.user.id,
+      { token: token },
+      { new: true }
+    );
+    console.log(req.user);
     res.status(200).send({
       success: true,
       msg: `${user.name}-you are successfully login`,
@@ -115,11 +119,26 @@ const login = async (req, res) => {
   }
 };
 
+const Profile_Token = async (req, res) => {
+  try {
+    const token = await req.headers.authorization;
+    const user = req.user;
+    if (token) {
+      res.status(200).send({
+        success:true,
+        msg:"you have token",
+        user,
+      })
+    }else{
+      return res.status(404).send({
+        success:false,
+        msg:"you have not token plz login",
+      })
+    }
 
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-
-
-
-
-module.exports = { register,login,}
-
+module.exports = { register, login, Profile_Token };

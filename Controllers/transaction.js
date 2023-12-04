@@ -14,6 +14,7 @@ const add_transaction = async (req, res) => {
       dueDate,
       paymentType,
       transactions,
+      status,
     } = req.body;
     switch (true) {
       case !customerName:
@@ -32,7 +33,6 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "dueDate is required" });
       case !paymentType:
         return res.send({ error: "paymentType is required" });
-     
     }
 
     const remainpayment = total_amount - advance_payment;
@@ -45,10 +45,11 @@ const add_transaction = async (req, res) => {
       isFullPayment,
       total_amount,
       advance_payment,
-      remainingAmount:remainpayment,
+      remainingAmount: remainpayment,
       dueDate,
       paymentType,
-      transactions:[{amount:advance_payment}],
+      transactions: [{ amount: advance_payment }],
+      status,
     }).save();
     res.status(200).send({
       success: true,
@@ -99,11 +100,17 @@ const update_transaction = async (req, res) => {
       },
       { new: true, useFindAndModify: false }
     );
-
+    const remainingAmount = lastOrder.remainingAmount;
+    if (remainingAmount == 0) {
+      const UpdateStatus = await Order.findByIdAndUpdate(req.params.id, {
+        status: "Payment_Completed",
+      });
+    }
     res.status(200).send({
       success: true,
       msg: "successfully updated transaction",
       updatedata,
+      
     });
   } catch (error) {
     // console.log(error);
@@ -114,4 +121,26 @@ const update_transaction = async (req, res) => {
     });
   }
 };
-module.exports = { add_transaction, get_transaction, update_transaction };
+
+const Get_Allorders = async (req, res) => {
+  try {
+    const GetAllorders = await Order.find({});
+    res.status(200).send({
+      success: true,
+      msg: "fetched all orders",
+      GetAllorders,
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      msg: "error in getallorders",
+      error,
+    });
+  }
+};
+module.exports = {
+  add_transaction,
+  get_transaction,
+  update_transaction,
+  Get_Allorders,
+};

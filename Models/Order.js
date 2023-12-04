@@ -33,11 +33,10 @@ const OrderSchema = new mongoose.Schema(
     },
     advance_payment:{
       type:Number,
-      required:true,
     },
     remainingAmount: {
       type: Number,
-  
+      default:0
     },
     dueDate: {
       type: Date,
@@ -55,6 +54,11 @@ const OrderSchema = new mongoose.Schema(
         date: {type:Date,default:new Date()},
       },
     ],
+    status:{
+      type:String,
+      enum:["Payment_Completed","Payment_Pending"],
+      default:"Payment_Completed"
+    }
   },
   { timestamps: true }
 );
