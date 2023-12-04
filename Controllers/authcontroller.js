@@ -92,11 +92,11 @@ const login = async (req, res) => {
     });
 
     user.token = await User.findByIdAndUpdate(
-      req.user.id,
+      user._id,
       { token: token },
       { new: true }
     );
-   
+   console.log(user.token);
     res.status(200).send({
       success: true,
       msg: `${user.name}-you are successfully login`,
@@ -107,7 +107,6 @@ const login = async (req, res) => {
         phone: user.phone,
         address: user.address,
         role: user.role,
-        vendor_id: user.vendor_id,
       },
       token,
     });
