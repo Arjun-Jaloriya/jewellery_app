@@ -105,6 +105,10 @@ const update_transaction = async (req, res) => {
       const UpdateStatus = await Order.findByIdAndUpdate(req.params.id, {
         status: "Payment_Completed",
       });
+      res.status(200).send({
+        success:true,
+        UpdateStatus
+      })
     }
     res.status(200).send({
       success: true,
@@ -128,6 +132,7 @@ const Get_Allorders = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "fetched all orders",
+      count:GetAllorders.length,
       GetAllorders,
     });
   } catch (error) {
