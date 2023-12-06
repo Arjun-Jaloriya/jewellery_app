@@ -1,9 +1,9 @@
-const momemt = require("moment");
+const moment = require("moment");
 const { Order } = require("../Models/Order");
 
 const add_transaction = async (req, res) => {
   try {
-    const {
+    let {
       customerName,
       customerMobile,
       address,
@@ -27,15 +27,20 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "items is required" });
       case !total_amount:
         return res.send({ error: "total_amount is required" });
-      case !advance_payment:
-        return res.send({ error: "advance_payment is required" });
-      case !dueDate:
-        return res.send({ error: "dueDate is required" });
       case !paymentType:
         return res.send({ error: "paymentType is required" });
     }
 
     const remainpayment = total_amount - advance_payment;
+    // let updatestatus = (!isFullPayment)?"Payment_Completed":"Payment_Pending";
+    // console.log(updatestatus);
+    if (isFullPayment == true) {
+      status = "Payment_Completed";
+      remainingAmount=0
+    } else {
+      status = "Payment_Pending";
+      remainingAmount = remainpayment
+    }
 
     const adddata = new Order({
       customerName,
@@ -45,12 +50,13 @@ const add_transaction = async (req, res) => {
       isFullPayment,
       total_amount,
       advance_payment,
-      remainingAmount: remainpayment,
+      remainingAmount,
       dueDate,
       paymentType,
       transactions: [{ amount: advance_payment }],
       status,
     }).save();
+  
     res.status(200).send({
       success: true,
       msg: "order added successfully",
@@ -106,15 +112,14 @@ const update_transaction = async (req, res) => {
         status: "Payment_Completed",
       });
       res.status(200).send({
-        success:true,
-        UpdateStatus
-      })
+        success: true,
+        UpdateStatus,
+      });
     }
     res.status(200).send({
       success: true,
       msg: "successfully updated transaction",
       updatedata,
-      
     });
   } catch (error) {
     // console.log(error);
@@ -132,7 +137,7 @@ const Get_Allorders = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "fetched all orders",
-      count:GetAllorders.length,
+      count: GetAllorders.length,
       GetAllorders,
     });
   } catch (error) {

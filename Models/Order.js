@@ -7,7 +7,7 @@ const OrderSchema = new mongoose.Schema(
       required: true,
     },
     customerMobile: {
-      type: Number,
+      type: String,
       required: true,
     },
     address: {
@@ -33,6 +33,7 @@ const OrderSchema = new mongoose.Schema(
     },
     advance_payment:{
       type:Number,
+      default:0
     },
     remainingAmount: {
       type: Number,
@@ -56,8 +57,8 @@ const OrderSchema = new mongoose.Schema(
     ],
     status:{
       type:String,
-      enum:["Payment_Completed","Payment_Pending"],
-      default:"Payment_Completed"
+      // enum:["Payment_Completed","Payment_Pending"],
+      // default:"Payment_Completed"
     }
   },
   { timestamps: true }
