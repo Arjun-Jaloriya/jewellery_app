@@ -217,27 +217,51 @@ const cancel_order = async (req, res) => {
 const discount = async (req, res) => {
   try {
     let { amount } = req.body;
-    
-      const Updatediscount = await Order.findByIdAndUpdate(
-        req.params.id,
-        {
-          status: "Payment_Completed",
-          discount_status: "complete with discount",
-          discount_amount: amount,
-        },
-        { new: true, useFindAndModify: false }
-      );
-  
+
+    const Updatediscount = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "Payment_Completed",
+        discount_status: "complete with discount",
+        discount_amount: amount,
+      },
+      { new: true, useFindAndModify: false }
+    );
+
     res.status(200).send({
-      success:true,
-      msg:"discount added and transaction closed",
-      Updatediscount
-    })
+      success: true,
+      msg: "discount added and transaction closed",
+      Updatediscount,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
       success: false,
       msg: "error in discount",
+      error,
+    });
+  }
+};
+
+const perpagetransaction = async (req, res) => {
+  try {
+    const perpage = 8;
+    const page = req.params.page ? req.params.page : 1;
+    const gettransaaction = await Order.find({})
+      .skip((page - 1) * perpage)
+      .limit(perpage)
+      .sort({ createdAt: -1 });
+    res.status(200).send({
+      success: true,
+      msg: "fetched record of transaction successfully",
+      count:gettransaaction.length,
+      gettransaaction,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in pagination",
       error,
     });
   }
@@ -250,4 +274,5 @@ module.exports = {
   pending_status,
   cancel_order,
   discount,
+  perpagetransaction,
 };

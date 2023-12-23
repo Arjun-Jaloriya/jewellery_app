@@ -153,10 +153,34 @@ const recent_withdraw = async (req, res) => {
   }
 };
 
+const perpageEmi = async(req,res)=>{
+  try {
+    const perpage = 8;
+    const page = req.params.page ? req.params.page : 1;
+    const getEmitransaction = await Emi.find({})
+      .skip((page - 1) * perpage)
+      .limit(perpage)
+      .sort({ createdAt: -1 });
+    res.status(200).send({
+      success: true,
+      msg: "fetched record of Emi successfully",
+      count: getEmitransaction.length,
+      getEmitransaction,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in Emi-pagination",
+      error,
+    });
+  }
+}
 module.exports = {
   add_emitransaction,
   update_Emi,
   get_emitransaction,
   withdraw,
   recent_withdraw,
+  perpageEmi
 };

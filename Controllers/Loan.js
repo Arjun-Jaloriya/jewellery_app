@@ -177,4 +177,33 @@ const update_loantransaction = async (req, res) => {
     });
   }
 };
-module.exports = { addLoan, updateinterest, update_loantransaction };
+
+const Loanpagination = async (req, res) => {
+  try {
+    const perpage = 8;
+    const page = req.params.page ? req.params.page : 1;
+    const getLoantransaaction = await Loan.find({})
+      .skip((page - 1) * perpage)
+      .limit(perpage)
+      .sort({ createdAt: -1 });
+    res.status(200).send({
+      success: true,
+      msg: "fetched record of Loan successfully",
+      count: getLoantransaaction.length,
+      getLoantransaaction,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in Loan-pagination",
+      error,
+    });
+  }
+};
+module.exports = {
+  addLoan,
+  updateinterest,
+  update_loantransaction,
+  Loanpagination,
+};
