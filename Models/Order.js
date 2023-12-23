@@ -4,15 +4,12 @@ const OrderSchema = new mongoose.Schema(
   {
     customerName: {
       type: String,
-      required: true,
     },
     customerMobile: {
       type: String,
-      required: true,
     },
     address: {
       type: String,
-      required: true,
     },
     items: [
       {
@@ -21,6 +18,18 @@ const OrderSchema = new mongoose.Schema(
         quantity: { type: Number, required: true },
         price: { type: Number, required: true },
         type: { type: String, required: true, default: "gold" },
+        item_no: { type: String, required: true },
+        labour:{ type: Number,required:true},
+      },
+    ],
+    replacement: [
+      {
+        name: { type: String },
+        description: { type: String },
+        weight: { type: Number },
+        quantity: { type: Number },
+        total_Price: { type: Number },
+        type: { type: String, default: "gold" },
       },
     ],
     isFullPayment: {
@@ -31,13 +40,13 @@ const OrderSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    advance_payment:{
-      type:Number,
-      default:0
+    advance_payment: {
+      type: Number,
+      default: 0,
     },
     remainingAmount: {
       type: Number,
-      default:0
+      default: 0,
     },
     dueDate: {
       type: Date,
@@ -45,24 +54,27 @@ const OrderSchema = new mongoose.Schema(
     paymentType: {
       type: String,
       required: true,
-      default:"cash",
-      enum:["cash","card","upi"],
-      required:true,
+      default: "cash",
+      enum: ["cash", "card", "upi"],
     },
     transactions: [
       {
-        amount: {type:Number,default:0},
-        date: {type:Date,default:new Date()},
+        amount: { type: Number, default: 0 },
+        date: { type: Date, default: new Date() },
       },
     ],
-    status:{
-      type:String,
+    status: {
+      type: String,
       // enum:["Payment_Completed","Payment_Pending"],
       // default:"Payment_Completed"
-    }
+    },
+
+    cancel_status: { type: String },
+    discount_status: { type: String },
+    discount_amount: { type: Number },
   },
   { timestamps: true }
 );
 
 const Order = mongoose.model("Order", OrderSchema);
-module.exports = {Order};
+module.exports = { Order };

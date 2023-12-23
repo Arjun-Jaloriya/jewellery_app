@@ -9,6 +9,8 @@ dotenv.config();
 
 const authroutes = require("./Routes/authroutes");
 const transactionroute = require("./Routes/transaction");
+const emiroutes = require("./Routes/EmiTransaction");
+const loanroutes = require("./Routes/Loan");
 
 //middleware
 app.use(express.json());
@@ -17,6 +19,8 @@ app.use(bodyparser.urlencoded({extended:true}));
 
 app.use("/api/auth",authroutes);
 app.use("/api/transaction",transactionroute);
+app.use("/api/emi",emiroutes);
+app.use("/api/loan",loanroutes);
 
 app.listen(port,()=>{
     console.log(`app is live at port ${port}`);

@@ -8,6 +8,7 @@ const add_transaction = async (req, res) => {
       customerMobile,
       address,
       items,
+      replacement,
       isFullPayment,
       total_amount,
       advance_payment,
@@ -31,15 +32,23 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "paymentType is required" });
     }
 
-    const remainpayment = total_amount - advance_payment;
-    // let updatestatus = (!isFullPayment)?"Payment_Completed":"Payment_Pending";
-    // console.log(updatestatus);
     if (isFullPayment == true) {
       status = "Payment_Completed";
-      remainingAmount=0
+      remainingAmount = 0;
     } else {
+      if (replacement && replacement.length > 0) {
+        // Calculate the sum of replacement.total_Price
+        const replacementTotalPriceSum = replacement.reduce(
+          (sum, repl) => sum + (repl.total_Price || 0),
+          0
+        );
+
+        remainingAmount =
+          total_amount - replacementTotalPriceSum + advance_payment;
+      } else {
+        remainingAmount = total_amount - advance_payment;
+      }
       status = "Payment_Pending";
-      remainingAmount = remainpayment
     }
 
     const adddata = new Order({
@@ -49,20 +58,33 @@ const add_transaction = async (req, res) => {
       items,
       isFullPayment,
       total_amount,
-      advance_payment,
+      replacement,
+      advance_payment: replacement
+        ? replacement.reduce((sum, repl) => sum + (repl.total_Price || 0), 0) +
+          advance_payment
+        : advance_payment,
       remainingAmount,
       dueDate,
       paymentType,
-      transactions: [{ amount: advance_payment }],
+      transactions: [
+        {
+          amount: replacement
+            ? replacement.reduce(
+                (sum, repl) => sum + (repl.total_Price || 0),
+                0
+              ) + advance_payment
+            : advance_payment,
+        },
+      ],
       status,
     }).save();
-  
+
     res.status(200).send({
       success: true,
       msg: "order added successfully",
     });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     return res.status(500).send({
       success: false,
       msg: "error in add_transaction",
@@ -106,17 +128,24 @@ const update_transaction = async (req, res) => {
       },
       { new: true, useFindAndModify: false }
     );
-    const remainingAmount = lastOrder.remainingAmount;
-    if (remainingAmount == 0) {
-      const UpdateStatus = await Order.findByIdAndUpdate(req.params.id, {
-        status: "Payment_Completed",
-      });
-      res.status(200).send({
+
+    if (updatedRemainingAmount == 0) {
+      const UpdateStatus = await Order.findByIdAndUpdate(
+        req.params.id,
+        {
+          status: "Payment_Completed",
+        },
+        { new: true, useFindAndModify: false }
+      );
+      return res.status(200).send({
         success: true,
+        msg: "successfully updated transaction and status",
+        updatedata,
         UpdateStatus,
       });
     }
-    res.status(200).send({
+
+    return res.status(200).send({
       success: true,
       msg: "successfully updated transaction",
       updatedata,
@@ -133,7 +162,7 @@ const update_transaction = async (req, res) => {
 
 const Get_Allorders = async (req, res) => {
   try {
-    const GetAllorders = await Order.find({});
+    const GetAllorders = await Order.find({}).sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
       msg: "fetched all orders",
@@ -148,9 +177,77 @@ const Get_Allorders = async (req, res) => {
     });
   }
 };
+
+const pending_status = async (req, res) => {
+  try {
+    const pendingdata = await Order.find({ status: "Payment_Pending" });
+    console.log(pendingdata);
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      msg: "error in getpending_status",
+      error,
+    });
+  }
+};
+
+const cancel_order = async (req, res) => {
+  try {
+    const cancelorder = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        cancel_status: "cancel_order",
+      },
+      { new: true, useFindAndModify: false }
+    );
+    res.status(200).send({
+      success: true,
+      msg: "order cancelled successfully",
+      cancelorder,
+    });
+  } catch (error) {
+    return res.status(500).send({
+      success: false,
+      msg: "error in cancel-order",
+      error,
+    });
+  }
+};
+
+const discount = async (req, res) => {
+  try {
+    let { amount } = req.body;
+    
+      const Updatediscount = await Order.findByIdAndUpdate(
+        req.params.id,
+        {
+          status: "Payment_Completed",
+          discount_status: "complete with discount",
+          discount_amount: amount,
+        },
+        { new: true, useFindAndModify: false }
+      );
+  
+    res.status(200).send({
+      success:true,
+      msg:"discount added and transaction closed",
+      Updatediscount
+    })
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in discount",
+      error,
+    });
+  }
+};
 module.exports = {
   add_transaction,
   get_transaction,
   update_transaction,
   Get_Allorders,
+  pending_status,
+  cancel_order,
+  discount,
 };
