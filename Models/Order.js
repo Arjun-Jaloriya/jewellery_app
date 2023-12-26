@@ -51,18 +51,22 @@ const OrderSchema = new mongoose.Schema(
     dueDate: {
       type: Date,
     },
-    paymentType: {
-      type: String,
-      required: true,
-      default: "cash",
-      enum: ["cash", "card", "upi"],
-    },
     transactions: [
       {
         amount: { type: Number, default: 0 },
         date: { type: Date, default: new Date() },
+        paymentType: {
+          type: String,
+          default: "cash",
+          enum: ["cash", "card", "upi"],
+        },
       },
     ],
+    paymentType: {
+      type: String,
+      default: "cash",
+      enum: ["cash", "card", "upi"],
+    },
     status: {
       type: String,
       // enum:["Payment_Completed","Payment_Pending"],
@@ -77,4 +81,4 @@ const OrderSchema = new mongoose.Schema(
 );
 
 const Order = mongoose.model("Order", OrderSchema);
-module.exports = { Order };
+module.exports =  Order ;

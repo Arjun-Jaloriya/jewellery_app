@@ -155,7 +155,7 @@ const recent_withdraw = async (req, res) => {
 
 const perpageEmi = async(req,res)=>{
   try {
-    const perpage = 8;
+    const perpage = req.params.perpage ? req.params.perpage : 5;
     const page = req.params.page ? req.params.page : 1;
     const getEmitransaction = await Emi.find({})
       .skip((page - 1) * perpage)

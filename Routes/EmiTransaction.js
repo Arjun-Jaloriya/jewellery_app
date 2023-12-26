@@ -14,7 +14,7 @@ emirouter.put("/withdraw/:id",issignin,withdraw);
 //recent-withdraw-date
 emirouter.post("/recent-withdraw",issignin,recent_withdraw);
 //paginationEmi
-emirouter.get("/paginationEmi/:page",issignin,perpageEmi)
+emirouter.get("/paginationEmi/:page/:perpage",issignin,perpageEmi)
 
 
 

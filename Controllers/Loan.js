@@ -38,6 +38,9 @@ const addLoan = async (req, res) => {
         return res.send({ error: "interestRate is required" });
     }
 
+    const dailyInterest =
+    Math.round((loanCost * interestRate) / 100 / 365);
+
     let adddata = await new Loan({
       customerName,
       customerMobile,
@@ -47,8 +50,8 @@ const addLoan = async (req, res) => {
       loanCost,
       interestRate,
       transactions,
-      totalInterest,
-      updatedInterest,
+      totalInterest:dailyInterest,
+      updatedInterest:dailyInterest,
       startDate,
       lastUpdateDate: startDate,
       updatedLoanCost: loanCost,
@@ -73,15 +76,19 @@ const updateinterest = async (req, res) => {
   try {
     const olddata = await Loan.findById(req.params.id);
     const currentDate = new Date();
+
     const daysElapsed =
-      Math.floor(
-        (currentDate - olddata.lastUpdateDate + 1) / (24 * 60 * 60 * 1000)
-      ) + 1;
+      Math.ceil(
+        (currentDate.getDate() - olddata.lastUpdateDate.getDate()) / (24 * 60 * 60 * 1000)
+      );
+    console.log(currentDate.getDate(),olddata.lastUpdateDate.getDate(),daysElapsed);
     if (daysElapsed > 0) {
       const dailyInterest =
         (olddata.updatedLoanCost * olddata.interestRate) / 100 / 365;
-      const totalInterest =
-        olddata.updatedInterest + dailyInterest * daysElapsed;
+
+      const totalInterest = Math.floor(
+        olddata.updatedInterest + dailyInterest * daysElapsed
+      );
       const updatedata = await Loan.findByIdAndUpdate(
         req.params.id,
         {
@@ -92,16 +99,16 @@ const updateinterest = async (req, res) => {
         { new: true, useFindAndModify: false }
       );
 
-      res.status(200).send({
+      return res.status(200).send({
         suceess: true,
         msg: "update daily interest successfully",
         updatedata,
       });
     } else {
-      res.status(200).send({
+      return res.status(200).send({
         success: true,
         message: "No update needed",
-        totalInterest: olddata.totalInterest,
+        totalInterest: olddata.updatedInterest,
       });
     }
   } catch (error) {
@@ -180,7 +187,7 @@ const update_loantransaction = async (req, res) => {
 
 const Loanpagination = async (req, res) => {
   try {
-    const perpage = 8;
+    const perpage = req.params.perpage ? req.params.perpage : 5;
     const page = req.params.page ? req.params.page : 1;
     const getLoantransaaction = await Loan.find({})
       .skip((page - 1) * perpage)

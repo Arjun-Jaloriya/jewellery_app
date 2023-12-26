@@ -1,5 +1,5 @@
 const moment = require("moment");
-const { Order } = require("../Models/Order");
+const Order = require("../Models/Order");
 
 const add_transaction = async (req, res) => {
   try {
@@ -13,8 +13,8 @@ const add_transaction = async (req, res) => {
       total_amount,
       advance_payment,
       dueDate,
-      paymentType,
       transactions,
+      paymentType,
       status,
     } = req.body;
     switch (true) {
@@ -28,8 +28,6 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "items is required" });
       case !total_amount:
         return res.send({ error: "total_amount is required" });
-      case !paymentType:
-        return res.send({ error: "paymentType is required" });
     }
 
     if (isFullPayment == true) {
@@ -44,7 +42,7 @@ const add_transaction = async (req, res) => {
         );
 
         remainingAmount =
-          total_amount - replacementTotalPriceSum + advance_payment;
+          total_amount - (replacementTotalPriceSum + advance_payment);
       } else {
         remainingAmount = total_amount - advance_payment;
       }
@@ -245,7 +243,7 @@ const discount = async (req, res) => {
 
 const perpagetransaction = async (req, res) => {
   try {
-    const perpage = 8;
+    const perpage = req.params.perpage ? req.params.perpage : 5;
     const page = req.params.page ? req.params.page : 1;
     const gettransaaction = await Order.find({})
       .skip((page - 1) * perpage)
@@ -254,7 +252,7 @@ const perpagetransaction = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "fetched record of transaction successfully",
-      count:gettransaaction.length,
+      count: gettransaaction.length,
       gettransaaction,
     });
   } catch (error) {

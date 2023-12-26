@@ -14,7 +14,7 @@ transactionrouter.put("/cancel-order/:id",issignin,cancel_order);
 //discount
 transactionrouter.put("/discount/:id",issignin,discount);
 //pagination
-transactionrouter.get("/pagination/:page",issignin,perpagetransaction);
+transactionrouter.get("/pagination/:page/:perpage",issignin,perpagetransaction);
 
 
 module.exports = transactionrouter;
