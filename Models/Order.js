@@ -48,9 +48,7 @@ const OrderSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    dueDate: {
-      type: Date,
-    },
+   
     transactions: [
       {
         amount: { type: Number, default: 0 },

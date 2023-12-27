@@ -92,7 +92,7 @@ const updateinterest = async (req, res) => {
       const updatedata = await Loan.findByIdAndUpdate(
         req.params.id,
         {
-          totalInterest: totalInterest,
+          totalInterest: totalInterest + olddata.totalInterest,
           updatedInterest: totalInterest,
           lastUpdateDate: currentDate,
         },
