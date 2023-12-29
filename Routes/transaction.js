@@ -1,5 +1,5 @@
 const express = require("express");
-const { add_transaction ,get_transaction,update_transaction,Get_Allorders,pending_status,cancel_order,discount,perpagetransaction} = require("../Controllers/transaction");
+const { add_transaction ,get_transaction,update_transaction,Get_Allorders,pending_status,cancel_order,discount,perpagetransaction,search} = require("../Controllers/transaction");
 const { issignin } = require("../Middleware/authmiddleware");
 const transactionrouter = express.Router();
 
@@ -14,7 +14,9 @@ transactionrouter.put("/cancel-order/:id",issignin,cancel_order);
 //discount
 transactionrouter.put("/discount/:id",issignin,discount);
 //pagination
-transactionrouter.get("/pagination/:page/:perpage",issignin,perpagetransaction);
+transactionrouter.get("/",issignin,perpagetransaction);
+//search
+transactionrouter.get("/search/:keyword/:page/:perpage",issignin,search)
 
 
 module.exports = transactionrouter;

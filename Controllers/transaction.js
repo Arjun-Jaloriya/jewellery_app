@@ -243,8 +243,9 @@ const discount = async (req, res) => {
 
 const perpagetransaction = async (req, res) => {
   try {
-    const perpage = req.params.perpage ? req.params.perpage : 5;
-    const page = req.params.page ? req.params.page : 1;
+    const perpage = req.body.perpage ? req.body.perpage : 5;
+    const page = req.body.page ? req.body.page : 1;
+    const count = await Order.find({});
     const gettransaaction = await Order.find({})
       .skip((page - 1) * perpage)
       .limit(perpage)
@@ -252,7 +253,7 @@ const perpagetransaction = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "fetched record of transaction successfully",
-      count: gettransaaction.length,
+      count: count.length,
       gettransaaction,
     });
   } catch (error) {
@@ -260,6 +261,40 @@ const perpagetransaction = async (req, res) => {
     return res.status(500).send({
       success: false,
       msg: "error in pagination",
+      error,
+    });
+  }
+};
+
+const search = async (req, res) => {
+  try {
+    const keyword = req.params.keyword ? req.params.keyword : undefined;
+    const page = req.params.page ? req.params.page : 1;
+    const perpage = req.params.perpage ? req.params.perpage : 1;
+
+    const result = await Order.find({
+      $or: [{ customerName: { $regex: keyword, $options: "i" } }],
+    })
+      .skip((page - 1) * perpage)
+      .limit(perpage).sort({ createdAt: -1 });
+    if (result.length > 0) {
+      res.status(200).send({
+        success: true,
+        msg: "search data fetched",
+        count: result.length,
+        result,
+      });
+    } else {
+      return res.status(200).send({
+        success: true,
+        msg: "no records found",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in search",
       error,
     });
   }
@@ -273,4 +308,5 @@ module.exports = {
   cancel_order,
   discount,
   perpagetransaction,
+  search,
 };
