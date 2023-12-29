@@ -187,8 +187,8 @@ const update_loantransaction = async (req, res) => {
 
 const Loanpagination = async (req, res) => {
   try {
-    const perpage = req.params.perpage ? req.params.perpage : 5;
-    const page = req.params.page ? req.params.page : 1;
+    const perpage = req.body.perpage ? req.body.perpage : 5;
+    const page = req.body.page ? req.body.page : 1;
     const getLoantransaaction = await Loan.find({})
       .skip((page - 1) * perpage)
       .limit(perpage)
