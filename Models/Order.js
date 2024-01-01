@@ -71,7 +71,7 @@ const OrderSchema = new mongoose.Schema(
       // default:"Payment_Completed"
     },
 
-    cancel_status: { type: String },
+  
     discount_status: { type: String },
     discount_amount: { type: Number },
   },

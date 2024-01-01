@@ -7,7 +7,7 @@ const transactionrouter = express.Router();
 transactionrouter.post("/add-transaction",issignin,add_transaction);
 transactionrouter.get("/get-transaction/:id",issignin,get_transaction);
 transactionrouter.put("/update-transaction/:id",issignin,update_transaction);
-transactionrouter.get("/getallorders/:search?:page?/:perpage?",issignin,Get_Allorders);
+transactionrouter.get("/getallorders",issignin,Get_Allorders);
 //pending status data
 transactionrouter.get("/pendingstatus",issignin,pending_status);
 transactionrouter.put("/cancel-order/:id",issignin,cancel_order);

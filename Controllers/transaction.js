@@ -160,44 +160,29 @@ const update_transaction = async (req, res) => {
 
 const Get_Allorders = async (req, res) => {
   try {
-    const search = req.params.search ? req.params.search : undefined;
-    const perpage = req.params.perpage ? req.params.perpage : 5;
-    const page = req.params.page ? req.params.page : 1;
-    const count = await Order.find({});
-    const getOrders = await Order.find({})
+    const search = req.query.search ? req.query.search : "";
+    const perpage = req.query.perpage ? req.query.perpage : 5;
+    const page = req.query.page ? req.query.page : 1;
+    const count = await Order.find({
+      $or: [
+        {
+          customerName: { $regex: search, $options: "i" },
+        },
+      ],
+    });
+    const getOrders = await Order.find({
+      $or: [{ customerName: { $regex: search, $options: "i" } }],
+    })
       .skip((page - 1) * perpage)
       .limit(perpage)
       .sort({ createdAt: -1 });
-    if (search) {
-      const result = await Order.find({
-        $or: [{ customerName: { $regex: search, $options: "i" } }],
-      })
-        .skip((page - 1) * perpage)
-        .limit(perpage)
-        .sort({ createdAt: -1 });
-       
-      if (result.length > 0) {
-        res.status(200).send({
-          success: true,
-          msg: "search data fetched",
-          count: result.length,
-          result,
-        });
-      } else {
-        return res.status(200).send({
-          success: true,
-          msg: "no records found",
-          result: [],
-        });
-      }
-    } else {
-      res.status(200).send({
-        success: true,
-        msg: "search data fetched",
-        count: count.length,
-        getOrders,
-      });
-    }
+      console.log(getOrders.length);
+    res.status(200).send({
+      success: true,
+      msg: "search data fetched",
+      count: count.length,
+      results: getOrders,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
@@ -226,7 +211,7 @@ const cancel_order = async (req, res) => {
     const cancelorder = await Order.findByIdAndUpdate(
       req.params.id,
       {
-        cancel_status: "cancel_order",
+        status: "cancel_order",
       },
       { new: true, useFindAndModify: false }
     );
