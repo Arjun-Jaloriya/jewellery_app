@@ -30,23 +30,23 @@ const register = async (req, res) => {
         msg: "User Allready Register please login",
       });
     }
-    const hashpassword = await bcrypt.hash(password, 10);
+    const hashPassword = await bcrypt.hash(password, 10);
 
-    const userdata = new User({
+    const userData = new User({
       name: name,
       email: email,
-      password: hashpassword,
+      password: hashPassword,
       address: address,
       phone: phone,
     });
-    await userdata.save();
+    await userData.save();
     res.status(200).send({
       success: true,
       msg: "User Register Successfully",
-      userdata,
+      results:userData,
     });
   } catch (error) {
-    // console.log(error);
+    console.log(error);
     res.status(500).send({
       success: false,
       msg: "error in register",
@@ -96,7 +96,7 @@ const login = async (req, res) => {
       { token: token },
       { new: true }
     );
-   console.log(user.token);
+ 
     res.status(200).send({
       success: true,
       msg: `${user.name}-you are successfully login`,
@@ -128,7 +128,7 @@ const Profile_Token = async (req, res) => {
       res.status(200).send({
         success:true,
         msg:"you have token",
-        user,
+        results:user,
       })
     }else{
       return res.status(404).send({

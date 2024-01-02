@@ -74,7 +74,7 @@ const update_Emi = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "update emi successfully",
-      update_Totalamount,
+      results:update_Totalamount,
     });
   } catch (error) {
     console.log(error);
@@ -88,18 +88,34 @@ const update_Emi = async (req, res) => {
 
 const get_emitransaction = async (req, res) => {
   try {
-    const gettransaction = await Emi.find({}).sort({ createdAt: -1 });
+    const search = req.query.search ? req.query.search : "";
+    const perpage = req.query.perpage ? req.query.perpage : 5;
+    const page = req.query.page ? req.query.page : 1;
+    const count = await Emi.find({
+      $or: [
+        {
+          customerName: { $regex: search, $options: "i" },
+        },
+      ],
+    });
+
+    const getEmiData = await Emi.find({
+      $or: [{ customerName: { $regex: search, $options: "i" } }],
+    })
+      .skip((page - 1) * perpage)
+      .limit(perpage)
+      .sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
-      msg: "successfully fetched all emi-transaction",
-      count: gettransaction.length,
-      gettransaction,
+      msg: "search data fetched",
+      count: count.length,
+      results: getEmiData,
     });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
       success: false,
-      msg: "error in getall-emi_transaction",
+      msg: "error in get-EmiData",
       error,
     });
   }
@@ -120,7 +136,7 @@ const withdraw = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "withdraw money successfull",
-      updatewithdraw,
+      results:updatewithdraw,
     });
   } catch (error) {
     console.log(error);
@@ -141,7 +157,7 @@ const recent_withdraw = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "fetched recent withdraw successfully",
-      withdrawdata,
+     results:withdrawdata,
     });
   } catch (error) {
     console.log(error);
@@ -153,34 +169,11 @@ const recent_withdraw = async (req, res) => {
   }
 };
 
-const perpageEmi = async(req,res)=>{
-  try {
-    const perpage = req.body.perpage ? req.body.perpage : 5;
-    const page = req.body.page ? req.body.page : 1;
-    const getEmitransaction = await Emi.find({})
-      .skip((page - 1) * perpage)
-      .limit(perpage)
-      .sort({ createdAt: -1 });
-    res.status(200).send({
-      success: true,
-      msg: "fetched record of Emi successfully",
-      count: getEmitransaction.length,
-      getEmitransaction,
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send({
-      success: false,
-      msg: "error in Emi-pagination",
-      error,
-    });
-  }
-}
 module.exports = {
   add_emitransaction,
   update_Emi,
   get_emitransaction,
   withdraw,
   recent_withdraw,
-  perpageEmi
+  
 };

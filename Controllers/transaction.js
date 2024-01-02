@@ -97,13 +97,13 @@ const get_transaction = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "fetched record successfully",
-      getdata,
+      results:getdata,
     });
   } catch (error) {
     // console.log(error);
     return res.status(500).send({
       success: false,
-      msg: "error in get",
+      msg: "error in get_transaction",
       error,
     });
   }
@@ -138,15 +138,15 @@ const update_transaction = async (req, res) => {
       return res.status(200).send({
         success: true,
         msg: "successfully updated transaction and status",
-        updatedata,
-        UpdateStatus,
+        results:updatedata,
+        resultStatus:UpdateStatus,
       });
     }
 
     return res.status(200).send({
       success: true,
       msg: "successfully updated transaction",
-      updatedata,
+      results:updatedata,
     });
   } catch (error) {
     // console.log(error);
@@ -170,13 +170,13 @@ const Get_Allorders = async (req, res) => {
         },
       ],
     });
+
     const getOrders = await Order.find({
       $or: [{ customerName: { $regex: search, $options: "i" } }],
     })
       .skip((page - 1) * perpage)
       .limit(perpage)
       .sort({ createdAt: -1 });
-      console.log(getOrders.length);
     res.status(200).send({
       success: true,
       msg: "search data fetched",
@@ -196,7 +196,11 @@ const Get_Allorders = async (req, res) => {
 const pending_status = async (req, res) => {
   try {
     const pendingdata = await Order.find({ status: "Payment_Pending" });
-    console.log(pendingdata);
+    res.status(200).send({
+      success: true,
+      count:pendingdata.length,
+      results:pendingdata,
+    });
   } catch (error) {
     return res.status(500).send({
       success: false,
@@ -218,7 +222,7 @@ const cancel_order = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "order cancelled successfully",
-      cancelorder,
+      results:cancelorder,
     });
   } catch (error) {
     return res.status(500).send({
@@ -246,7 +250,7 @@ const discount = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "discount added and transaction closed",
-      Updatediscount,
+      results:Updatediscount,
     });
   } catch (error) {
     console.log(error);
@@ -258,42 +262,6 @@ const discount = async (req, res) => {
   }
 };
 
-// const perpagetransaction = async (req, res) => {
-//   try {
-//     const search = req.body.search ? req.body.search : undefined;
-//     const perpage = req.body.perpage ? req.body.perpage : 5;
-//     const page = req.body.page ? req.body.page : 1;
-//     const count = await Order.find({});
-
-//     const result = await Order.find({
-//       $or: [{ customerName: { $regex: search, $options: "i" } }],
-//     })
-//       .skip((page - 1) * perpage)
-//       .limit(perpage)
-//       .sort({ createdAt: -1 });
-//     if (result.length > 0) {
-//       res.status(200).send({
-//         success: true,
-//         msg: "search data fetched",
-//         count: count.length,
-//         result,
-//       });
-//     } else {
-//       return res.status(200).send({
-//         success: true,
-//         msg: "no records found",
-//         result: [],
-//       });
-//     }
-//   } catch (error) {
-//     console.log(error);
-//     return res.status(500).send({
-//       success: false,
-//       msg: "error in pagination",
-//       error,
-//     });
-//   }
-// };
 
 module.exports = {
   add_transaction,

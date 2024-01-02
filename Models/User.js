@@ -10,7 +10,6 @@ const Userschema = new mongoose.Schema(
     role: { type: Number, default: 0 },
     token: {
       type: String,
-      required: true,
     },
     status: {
       type: Number,

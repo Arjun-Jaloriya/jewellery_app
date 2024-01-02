@@ -38,8 +38,7 @@ const addLoan = async (req, res) => {
         return res.send({ error: "interestRate is required" });
     }
 
-    const dailyInterest =
-    Math.round((loanCost * interestRate) / 100 / 365);
+    const dailyInterest = Math.round((loanCost * interestRate) / 100 / 365);
 
     let adddata = await new Loan({
       customerName,
@@ -50,8 +49,8 @@ const addLoan = async (req, res) => {
       loanCost,
       interestRate,
       transactions,
-      totalInterest:dailyInterest,
-      updatedInterest:dailyInterest,
+      totalInterest: dailyInterest,
+      updatedInterest: dailyInterest,
       startDate,
       lastUpdateDate: startDate,
       updatedLoanCost: loanCost,
@@ -77,11 +76,15 @@ const updateinterest = async (req, res) => {
     const olddata = await Loan.findById(req.params.id);
     const currentDate = new Date();
 
-    const daysElapsed =
-      Math.ceil(
-        (currentDate.getDate() - olddata.lastUpdateDate.getDate()) / (24 * 60 * 60 * 1000)
-      );
-    console.log(currentDate.getDate(),olddata.lastUpdateDate.getDate(),daysElapsed);
+    const daysElapsed = Math.ceil(
+      (currentDate.getDate() - olddata.lastUpdateDate.getDate()) /
+        (24 * 60 * 60 * 1000)
+    );
+    console.log(
+      currentDate.getDate(),
+      olddata.lastUpdateDate.getDate(),
+      daysElapsed
+    );
     if (daysElapsed > 0) {
       const dailyInterest =
         (olddata.updatedLoanCost * olddata.interestRate) / 100 / 365;
@@ -102,12 +105,12 @@ const updateinterest = async (req, res) => {
       return res.status(200).send({
         suceess: true,
         msg: "update daily interest successfully",
-        updatedata,
+        results: updatedata,
       });
     } else {
       return res.status(200).send({
         success: true,
-        message: "No update needed",
+        message: "No update needed for interest",
         totalInterest: olddata.updatedInterest,
       });
     }
@@ -125,26 +128,23 @@ const update_loantransaction = async (req, res) => {
   try {
     const { transaction } = req.body;
     let lastloandata = await Loan.findById(req.params.id);
-    // let tamount = transaction.amount[0];
+
     // Subtract deposit amount from total interest
     const updatedTotalInterest = Math.max(
       lastloandata.updatedInterest - transaction[0].amount,
       0
     );
-    // console.log(updatedTotalInterest, "updated");
 
     // Calculate remaining deposit amount after subtracting from total interest
     const remainingDeposit =
       transaction[0].amount -
       (lastloandata.updatedInterest - updatedTotalInterest);
-    // console.log(remainingDeposit, "remain");
 
     // Subtract remaining deposit from updated loan cost
     const updatedLoanCost = Math.max(
       lastloandata.updatedLoanCost - remainingDeposit,
       0
     );
-    // console.log(updatedLoanCost, "cost");
 
     let updateLoanTransaction = await Loan.findByIdAndUpdate(
       req.params.id,
@@ -167,14 +167,14 @@ const update_loantransaction = async (req, res) => {
       return res.status(200).send({
         success: true,
         msg: "your Loan is closed",
-        updatestatus,
-        updateLoanTransaction,
+        resultStatus: updatestatus,
+        results: updateLoanTransaction,
       });
     }
     return res.status(200).send({
       success: true,
       msg: "successfully update loan-transaction",
-      updateLoanTransaction,
+      results:updateLoanTransaction,
     });
   } catch (error) {
     console.log(error);
@@ -185,32 +185,44 @@ const update_loantransaction = async (req, res) => {
   }
 };
 
-const Loanpagination = async (req, res) => {
+const getallLoan = async (req, res) => {
   try {
-    const perpage = req.body.perpage ? req.body.perpage : 5;
-    const page = req.body.page ? req.body.page : 1;
-    const getLoantransaaction = await Loan.find({})
+    const search = req.query.search ? req.query.search : "";
+    const perpage = req.query.perpage ? req.query.perpage : 5;
+    const page = req.query.page ? req.query.page : 1;
+    const count = await Loan.find({
+      $or: [
+        {
+          customerName: { $regex: search, $options: "i" },
+        },
+      ],
+    });
+
+    const getAllLoan = await Loan.find({
+      $or: [{ customerName: { $regex: search, $options: "i" } }],
+    })
       .skip((page - 1) * perpage)
       .limit(perpage)
       .sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
-      msg: "fetched record of Loan successfully",
-      count: getLoantransaaction.length,
-      getLoantransaaction,
+      msg: "search data fetched",
+      count: count.length,
+      results: getAllLoan,
     });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
       success: false,
-      msg: "error in Loan-pagination",
+      msg: "error in get-allLoan",
       error,
     });
   }
 };
+
 module.exports = {
   addLoan,
   updateinterest,
   update_loantransaction,
-  Loanpagination,
+  getallLoan,
 };
