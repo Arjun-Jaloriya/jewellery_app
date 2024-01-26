@@ -29,7 +29,7 @@ const EmiSchema = new mongoose.Schema(
       default: 0,
     },
     completation_date: { type: Date,},
-    withdraw_status: { type: String },
+    status: { type: String },
   },
   { timestamps: true }
 );

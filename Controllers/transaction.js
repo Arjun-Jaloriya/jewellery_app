@@ -97,7 +97,7 @@ const get_transaction = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "fetched record successfully",
-      results:getdata,
+      results: getdata,
     });
   } catch (error) {
     // console.log(error);
@@ -138,15 +138,15 @@ const update_transaction = async (req, res) => {
       return res.status(200).send({
         success: true,
         msg: "successfully updated transaction and status",
-        results:updatedata,
-        resultStatus:UpdateStatus,
+        results: updatedata,
+        resultStatus: UpdateStatus,
       });
     }
 
     return res.status(200).send({
       success: true,
       msg: "successfully updated transaction",
-      results:updatedata,
+      results: updatedata,
     });
   } catch (error) {
     // console.log(error);
@@ -195,11 +195,34 @@ const Get_Allorders = async (req, res) => {
 
 const pending_status = async (req, res) => {
   try {
-    const pendingdata = await Order.find({ status: "Payment_Pending" });
+    const search = req.query.search ? req.query.search : "";
+    const perpage = req.query.perpage ? req.query.perpage : 5;
+    const page = req.query.page ? req.query.page : 1;
+
+    const count = await Order.find({
+      $or: [
+        {
+          customerName: { $regex: search, $options: "i" },
+        },
+      ],
+    });
+
+    const pendingData = await Order.find({
+      $and: [
+        { customerName: { $regex: search, $options: "i" } },
+        {
+          status: "Payment_Pending",
+        },
+      ],
+    })
+      .skip((page - 1) * perpage)
+      .limit(perpage)
+      .sort({ createdAt: -1 });
+
     res.status(200).send({
       success: true,
-      count:pendingdata.length,
-      results:pendingdata,
+      count: pendingData.length,
+      results: pendingData,
     });
   } catch (error) {
     return res.status(500).send({
@@ -222,7 +245,7 @@ const cancel_order = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "order cancelled successfully",
-      results:cancelorder,
+      results: cancelorder,
     });
   } catch (error) {
     return res.status(500).send({
@@ -250,7 +273,7 @@ const discount = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "discount added and transaction closed",
-      results:Updatediscount,
+      results: Updatediscount,
     });
   } catch (error) {
     console.log(error);
@@ -261,7 +284,6 @@ const discount = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   add_transaction,

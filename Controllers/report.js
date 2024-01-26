@@ -68,7 +68,7 @@ const customReport = async (req, res) => {
       .skip((page - 1) * perpage)
       .limit(perpage)
       .sort({ createdAt: -1 });
-      console.log(reportData.length);
+      
     if (reportData.length) {
       const totalSumAmount = reportData.map((data) => {
         return data.total_amount;

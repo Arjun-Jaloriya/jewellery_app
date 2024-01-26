@@ -60,9 +60,6 @@ const update_Emi = async (req, res) => {
 
     let updatedamount = lastamount + transactions[0].amount;
 
-    // let sumtotal = lastamount.reduce((sum, tran) => {
-    //   sum + (tran.amount || 0), 0;
-    // });
     let update_Totalamount = await Emi.findByIdAndUpdate(
       req.params.id,
       {
@@ -74,7 +71,7 @@ const update_Emi = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "update emi successfully",
-      results:update_Totalamount,
+      results: update_Totalamount,
     });
   } catch (error) {
     console.log(error);
@@ -126,7 +123,7 @@ const withdraw = async (req, res) => {
     let updatewithdraw = await Emi.findByIdAndUpdate(
       req.params.id,
       {
-        withdraw_status: "withdraw",
+        status: "withdraw",
       },
       {
         new: true,
@@ -136,7 +133,7 @@ const withdraw = async (req, res) => {
     res.status(200).send({
       success: true,
       msg: "withdraw money successfull",
-      results:updatewithdraw,
+      results: updatewithdraw,
     });
   } catch (error) {
     console.log(error);
@@ -150,14 +147,28 @@ const withdraw = async (req, res) => {
 
 const recent_withdraw = async (req, res) => {
   try {
-    const { frequency } = req.body;
+    const search = req.query.search ? req.query.search : "";
+    const perpage = req.query.perpage ? req.query.perpage : 5;
+    const page = req.query.page ? req.query.page : 1;
+    const { frequency } = req.query;
     const withdrawdata = await Emi.find({
-      createdAt: { $gt: moment().subtract(Number(frequency), "d").toDate() },
-    });
+      $and: [
+        {
+          createdAt: {
+            $gt: moment().subtract(Number(frequency), "d").toDate(),
+          },
+        },
+        { customerName: { $regex: search, $options: "i" } },
+      ],
+    })
+      .skip((page - 1) * perpage)
+      .limit(perpage)
+      .sort({ createdAt: -1 });
     res.status(200).send({
       success: true,
       msg: "fetched recent withdraw successfully",
-     results:withdrawdata,
+      count: withdrawdata.length,
+      results: withdrawdata,
     });
   } catch (error) {
     console.log(error);
@@ -175,5 +186,4 @@ module.exports = {
   get_emitransaction,
   withdraw,
   recent_withdraw,
-  
 };

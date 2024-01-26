@@ -80,11 +80,11 @@ const updateinterest = async (req, res) => {
       (currentDate.getDate() - olddata.lastUpdateDate.getDate()) /
         (24 * 60 * 60 * 1000)
     );
-    console.log(
-      currentDate.getDate(),
-      olddata.lastUpdateDate.getDate(),
-      daysElapsed
-    );
+    // console.log(
+    //   currentDate.getDate(),
+    //   olddata.lastUpdateDate.getDate(),
+    //   daysElapsed
+    // );
     if (daysElapsed > 0) {
       const dailyInterest =
         (olddata.updatedLoanCost * olddata.interestRate) / 100 / 365;
@@ -112,6 +112,7 @@ const updateinterest = async (req, res) => {
         success: true,
         message: "No update needed for interest",
         totalInterest: olddata.updatedInterest,
+        results:olddata
       });
     }
   } catch (error) {
