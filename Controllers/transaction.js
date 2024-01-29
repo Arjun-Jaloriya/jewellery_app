@@ -259,22 +259,32 @@ const cancel_order = async (req, res) => {
 const discount = async (req, res) => {
   try {
     let { amount } = req.body;
+    const oldData = await Order.findById(req.params.id);
+    const oldRemainingamount = oldData.remainingAmount;
+  
+if(amount <= oldRemainingamount){
+  const Updatediscount = await Order.findByIdAndUpdate(
+    req.params.id,
+    {
+      status: "Payment_Completed",
+      discount_status: "complete with discount",
+      discount_amount: amount,
+    },
+    { new: true, useFindAndModify: false }
+  );
 
-    const Updatediscount = await Order.findByIdAndUpdate(
-      req.params.id,
-      {
-        status: "Payment_Completed",
-        discount_status: "complete with discount",
-        discount_amount: amount,
-      },
-      { new: true, useFindAndModify: false }
-    );
-
-    res.status(200).send({
-      success: true,
-      msg: "discount added and transaction closed",
-      results: Updatediscount,
-    });
+  res.status(200).send({
+    success: true,
+    msg: "discount added and transaction closed",
+    results: Updatediscount,
+  });
+}else{
+  return res.status(200).send({
+    success:true,
+    msg:"please enter amount less than remainingAmount"
+  })
+}
+    
   } catch (error) {
     console.log(error);
     return res.status(500).send({
