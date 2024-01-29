@@ -80,12 +80,14 @@ const customReport = async (req, res) => {
         success: true,
         msg: `${startDate} to ${endDate} report fetched`,
         Total: allTotal,
+        count:reportData.length,
         results: reportData,
       });
     }else{
       res.status(200).send({
         success:true,
         msg:"data fetched",
+        count:reportData.length,
         results:[]
       })
     }
