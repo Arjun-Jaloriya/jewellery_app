@@ -59,6 +59,12 @@ const customReport = async (req, res) => {
     const endDateTime = new Date(endDate);
     endDateTime.setHours(23, 59, 59, 999);
 
+    const count = await Order.find({
+      $and: [
+        { createdAt: { $gte: startDateTime, $lte: endDateTime } },
+        { customerName: { $regex: search, $options: "i" } },
+      ],
+    });
     const reportData = await Order.find({
       $and: [
         { createdAt: { $gte: startDateTime, $lte: endDateTime } },
@@ -80,14 +86,14 @@ const customReport = async (req, res) => {
         success: true,
         msg: `${startDate} to ${endDate} report fetched`,
         Total: allTotal,
-        count:reportData.length,
+        count:count.length,
         results: reportData,
       });
     }else{
       res.status(200).send({
         success:true,
         msg:"data fetched",
-        count:reportData.length,
+        count:count.length,
         results:[]
       })
     }
