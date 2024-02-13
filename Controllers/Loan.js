@@ -1,4 +1,8 @@
 const Loan = require("../Models/Loan");
+const cron = require("node-cron");
+const nodemailer = require("nodemailer");
+const moment = require("moment");
+const axios = require('axios');
 
 const addLoan = async (req, res) => {
   try {
@@ -80,7 +84,7 @@ const updateinterest = async (req, res) => {
       (currentDate.getDate() - olddata.lastUpdateDate.getDate()) /
         (24 * 60 * 60 * 1000)
     );
-  
+
     if (daysElapsed > 0) {
       const dailyInterest =
         (olddata.updatedLoanCost * olddata.interestRate) / 100 / 365;
@@ -108,7 +112,7 @@ const updateinterest = async (req, res) => {
         success: true,
         message: "No update needed for interest",
         totalInterest: olddata.updatedInterest,
-        results:olddata
+        results: olddata,
       });
     }
   } catch (error) {
@@ -171,7 +175,7 @@ const update_loantransaction = async (req, res) => {
     return res.status(200).send({
       success: true,
       msg: "successfully update loan-transaction",
-      results:updateLoanTransaction,
+      results: updateLoanTransaction,
     });
   } catch (error) {
     console.log(error);
@@ -251,10 +255,120 @@ const discount = async (req, res) => {
     });
   }
 };
+
+const sendemail = async (req, res) => {
+  try {
+    
+      const today = new Date();
+      //  console.log( moment().format('DD-MM-YYYY'));
+      const pendingLoans = await Loan.aggregate([
+        {
+          $match: {
+            status: "pending",
+            $expr: {
+              $eq: [{ $dayOfMonth: "$lastUpdateDate" }, today.getDate()],
+            },
+          },
+        },
+      ]);
+      if (pendingLoans.length > 0) {
+        const getRemainData = pendingLoans.map((data) => {
+          return {
+            name: data.customerName,
+            cost: data.updatedLoanCost,
+          };
+        });
+
+        // Construct the HTML content for the email body with a table
+        const emailBody = `
+  <html>
+  <head>
+      <style>
+          table {
+              font-family: Arial, sans-serif;
+              border-collapse: collapse;
+              width: 100%;
+          }
+          th, td {
+              border: 1px solid #dddddd;
+              text-align: left;
+              padding: 8px;
+          }
+          th {
+              background-color: #f2f2f2;
+          }
+      </style>
+  </head>
+  <body>
+      <h2>Pending Loan Customers - ${today.toDateString()}</h2>
+      <table>
+          <thead>
+              <tr>
+                  <th>Name</th>
+                  <th>Cost</th>
+              </tr>
+          </thead>
+          <tbody>
+              ${getRemainData.map((item) => `
+                  <tr>
+                      <td>${item.name}</td>
+                      <td>${item.cost}</td>
+                  </tr>
+              `
+                )
+                .join("")}
+          </tbody>
+      </table>
+  </body>
+  </html>
+`;
+
+        // res.status(200).send({
+        //   success: true,
+        //   msg: "please check your email ",
+        // });
+        const tranporter = nodemailer.createTransport({
+          service: "gmail",
+          auth: {
+            user: process.env.SENDEMAIL,
+            pass: process.env.SENDPASSWORD,
+          },
+        });
+
+        const mailOption = {
+          from: process.env.SENDEMAIL,
+          to: process.env.TOEMAIL,
+          subject: `Date - ${moment().format("DD-MM-YYYY")} Pending Loan Customers`,
+          html: emailBody, // Set HTML content
+        };
+
+        tranporter.sendMail(mailOption, (error, info) => {
+          // if (error) {
+          //   console.log(error.message);
+          //   return res.status(400).json({
+          //     msg: error.msg,
+          //     status: "false",
+          //     statusCode: res.statusCode,
+          //   });
+          // } else {
+          //   res.status(201).json({
+          //     msg: `Email sent ${info.response}`,
+          //     success: true,
+          //     statusCode: res.statusCode,
+          //   });
+          // }
+        });
+      }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   addLoan,
   updateinterest,
   update_loantransaction,
   getallLoan,
-  discount
+  discount,
+  sendemail,
 };

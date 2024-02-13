@@ -10,7 +10,9 @@ const add_emitransaction = async (req, res) => {
       fixed_Emi,
       total_creditamount,
       transactions,
-      completation_date,
+      maturityDate,
+      TotalInterest,
+      maturityAmount
     } = req.body;
 
     switch (true) {
@@ -26,8 +28,9 @@ const add_emitransaction = async (req, res) => {
         return res.send({ error: "fixed_Emi is required" });
     }
     const today = new Date();
-    let nextYear = new Date(today);
-    nextYear.setFullYear(today.getFullYear() + 1);
+    let next2Year = new Date(today);
+    next2Year.setFullYear(today.getFullYear() + 2);
+
 
     const add_emi = await new Emi({
       customerName,
@@ -36,7 +39,9 @@ const add_emitransaction = async (req, res) => {
       fixed_Emi,
       transactions,
       total_creditamount: transactions[0].amount,
-      completation_date: nextYear,
+      maturityDate: next2Year,
+      maturityAmount,
+      TotalInterest
     }).save();
     res.status(200).send({
       success: true,
@@ -192,10 +197,21 @@ const recent_withdraw = async (req, res) => {
   }
 };
 
+const updateInterest = async(req,res)=>{
+  try {
+      const today = new Date();
+       const getData = await Emi.find({completation_date:today});
+       console.log(getData);
+
+  } catch (error) {
+    console.log(error);
+  }
+}
 module.exports = {
   add_emitransaction,
   update_Emi,
   get_emitransaction,
   withdraw,
   recent_withdraw,
+  updateInterest
 };

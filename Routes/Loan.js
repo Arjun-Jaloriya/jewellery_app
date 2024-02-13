@@ -11,4 +11,5 @@ Loanrouter.get("/getLoanData",issignin,getallLoan);
 Loanrouter.put("/discountLoan/:id",issignin,discount);
 
 
+
 module.exports = Loanrouter;

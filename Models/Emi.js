@@ -28,8 +28,10 @@ const EmiSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-    completation_date: { type: Date,},
-    status: { type: String },
+    TotalInterest:{type:Number,default:0},
+    maturityAmount:{type:Number,default:0},
+    maturityDate: { type: Date,},
+    status: { type: String,default:"pending" },
   },
   { timestamps: true }
 );
