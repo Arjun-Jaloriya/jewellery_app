@@ -45,8 +45,10 @@ const LoanSchema = new mongoose.Schema(
         date: { type: Date, default: new Date() },
       },
     ],
-    status: { type: String, default: "pending", enum: ["pending", "closed"] },
+    discount_amount: { type: Number },
+    status: { type: String, default: "pending", enum: ["pending", "closed","closed with discount"] },
   },
+
   { timestamps: true }
 );
 const Loan = mongoose.model("Loan", LoanSchema);

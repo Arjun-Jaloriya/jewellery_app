@@ -80,11 +80,7 @@ const updateinterest = async (req, res) => {
       (currentDate.getDate() - olddata.lastUpdateDate.getDate()) /
         (24 * 60 * 60 * 1000)
     );
-    // console.log(
-    //   currentDate.getDate(),
-    //   olddata.lastUpdateDate.getDate(),
-    //   daysElapsed
-    // );
+  
     if (daysElapsed > 0) {
       const dailyInterest =
         (olddata.updatedLoanCost * olddata.interestRate) / 100 / 365;
@@ -220,10 +216,45 @@ const getallLoan = async (req, res) => {
     });
   }
 };
+const discount = async (req, res) => {
+  try {
+    let { amount } = req.body;
+    const oldData = await Loan.findById(req.params.id);
+    const oldupdatedLoanCost = oldData.updatedLoanCost;
 
+    if (amount <= oldupdatedLoanCost) {
+      const Updatediscount = await Loan.findByIdAndUpdate(
+        req.params.id,
+        {
+          status: "complete with discount",
+          discount_amount: amount,
+        },
+        { new: true, useFindAndModify: false }
+      );
+      res.status(200).send({
+        success: true,
+        msg: "discount added and Loan closed",
+        results: Updatediscount,
+      });
+    } else {
+      return res.status(200).send({
+        success: true,
+        msg: "please enter amount less than updatedLoanCost",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in discount",
+      error,
+    });
+  }
+};
 module.exports = {
   addLoan,
   updateinterest,
   update_loantransaction,
   getallLoan,
+  discount
 };

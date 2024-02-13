@@ -19,7 +19,7 @@ const OrderSchema = new mongoose.Schema(
         price: { type: Number, required: true },
         type: { type: String, required: true, default: "gold" },
         item_no: { type: String, required: true },
-        labour:{ type: Number,required:true},
+        labour: { type: Number, required: true },
       },
     ],
     replacement: [
@@ -36,6 +36,9 @@ const OrderSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    tax_Rate: { type: Number },
+    subTotal: { type: Number },
+    taxAmount: { type: Number },
     total_amount: {
       type: Number,
       required: true,
@@ -48,7 +51,7 @@ const OrderSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
-   
+
     transactions: [
       {
         amount: { type: Number, default: 0 },
@@ -70,12 +73,11 @@ const OrderSchema = new mongoose.Schema(
       // default:"Payment_Completed"
     },
 
-  
     discount_status: { type: String },
-    discount_amount: { type: Number },
+    discount_amount: { type: Number,default:0 },
   },
   { timestamps: true }
 );
 
 const Order = mongoose.model("Order", OrderSchema);
-module.exports =  Order ;
+module.exports = Order;

@@ -10,6 +10,9 @@ const add_transaction = async (req, res) => {
       items,
       replacement,
       isFullPayment,
+      taxRate,
+      taxAmount,
+      subTotal,
       total_amount,
       advance_payment,
       dueDate,
@@ -28,6 +31,12 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "items is required" });
       case !total_amount:
         return res.send({ error: "total_amount is required" });
+      case !taxRate:
+        return res.send({ error: "taxRate is required" });
+      case !taxAmount:
+        return res.send({ error: "taxAmount is required" });
+      case !subTotal:
+        return res.send({ error: "subTotal is required" });
     }
 
     if (isFullPayment == true) {
@@ -55,7 +64,11 @@ const add_transaction = async (req, res) => {
       address,
       items,
       isFullPayment,
+      
       total_amount,
+      taxRate,
+      taxAmount,
+      subTotal,
       replacement,
       advance_payment: replacement
         ? replacement.reduce((sum, repl) => sum + (repl.total_Price || 0), 0) +
@@ -261,30 +274,27 @@ const discount = async (req, res) => {
     let { amount } = req.body;
     const oldData = await Order.findById(req.params.id);
     const oldRemainingamount = oldData.remainingAmount;
-  
-if(amount <= oldRemainingamount){
-  const Updatediscount = await Order.findByIdAndUpdate(
-    req.params.id,
-    {
-      status: "Payment_Completed",
-      discount_status: "complete with discount",
-      discount_amount: amount,
-    },
-    { new: true, useFindAndModify: false }
-  );
-
-  res.status(200).send({
-    success: true,
-    msg: "discount added and transaction closed",
-    results: Updatediscount,
-  });
-}else{
-  return res.status(200).send({
-    success:true,
-    msg:"please enter amount less than remainingAmount"
-  })
-}
     
+    if (amount <= oldRemainingamount ) {
+      const Updatediscount = await Order.findByIdAndUpdate(
+        req.params.id,
+        {
+          status: "complete with discount",
+          discount_amount: amount,
+        },
+        { new: true, useFindAndModify: false }
+      );
+      res.status(200).send({
+        success: true,
+        msg: "discount added and transaction closed",
+        results: Updatediscount,
+      });
+    } else {
+      return res.status(200).send({
+        success: true,
+        msg: "please enter amount less than remainingAmount",
+      });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).send({

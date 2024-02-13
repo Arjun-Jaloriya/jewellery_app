@@ -120,21 +120,33 @@ const get_emitransaction = async (req, res) => {
 
 const withdraw = async (req, res) => {
   try {
-    let updatewithdraw = await Emi.findByIdAndUpdate(
-      req.params.id,
-      {
-        status: "withdraw",
-      },
-      {
-        new: true,
-        useFindAndModify: false,
-      }
-    );
-    res.status(200).send({
-      success: true,
-      msg: "withdraw money successfull",
-      results: updatewithdraw,
-    });
+    const oldData = await Emi.findById(req.params.id);
+    let oldDate = oldData[0].date;
+    const oldTotal_creditamount = oldData[0].fixed_Emi;
+    const currDate = new Date();
+    if (oldDate < currDate) {
+      return res.status(200).send({
+        success: true,
+        msg: "you cannot withdraw money until your maturity date is not coming",
+      });
+    } else {
+      let updatewithdraw = await Emi.findByIdAndUpdate(
+        req.params.id,
+        {
+          status: "withdraw",
+          
+        },
+        {
+          new: true,
+          useFindAndModify: false,
+        }
+      );
+      res.status(200).send({
+        success: true,
+        msg: "withdraw money successfull",
+        results: updatewithdraw,
+      });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).send({
