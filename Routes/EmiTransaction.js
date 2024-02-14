@@ -1,6 +1,6 @@
 const express = require("express");
 const { issignin } = require("../Middleware/authmiddleware");
-const { add_emitransaction,update_Emi,get_emitransaction,withdraw,recent_withdraw,updateInterest } = require("../Controllers/emi");
+const { add_emitransaction,update_Emi,get_emitransaction,withdraw,recent_withdraw,maturityEmi } = require("../Controllers/emi");
 const emirouter = express.Router();
 
 //add emi
@@ -14,7 +14,7 @@ emirouter.put("/withdraw/:id",issignin,withdraw);
 //recent-withdraw-date
 emirouter.post("/recent-withdraw",issignin,recent_withdraw);
 //
-emirouter.get("/updateInterest",issignin,updateInterest)
+emirouter.get("/maturity-emi",issignin,maturityEmi)
 
 
 

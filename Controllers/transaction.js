@@ -16,10 +16,12 @@ const add_transaction = async (req, res) => {
       total_amount,
       advance_payment,
       dueDate,
+      discount_amount,
       transactions,
       paymentType,
       status,
     } = req.body;
+    
     switch (true) {
       case !customerName:
         return res.send({ error: "customerName is required" });
@@ -64,11 +66,11 @@ const add_transaction = async (req, res) => {
       address,
       items,
       isFullPayment,
-      
       total_amount,
       taxRate,
       taxAmount,
       subTotal,
+      discount_amount,
       replacement,
       advance_payment: replacement
         ? replacement.reduce((sum, repl) => sum + (repl.total_Price || 0), 0) +

@@ -36,9 +36,10 @@ const OrderSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    tax_Rate: { type: Number },
+    taxRate: { type: Number },
     subTotal: { type: Number },
     taxAmount: { type: Number },
+    discount_amount: { type: Number,default:0 },
     total_amount: {
       type: Number,
       required: true,
@@ -73,8 +74,7 @@ const OrderSchema = new mongoose.Schema(
       // default:"Payment_Completed"
     },
 
-    discount_status: { type: String },
-    discount_amount: { type: Number,default:0 },
+   
   },
   { timestamps: true }
 );

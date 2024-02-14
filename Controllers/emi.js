@@ -197,10 +197,12 @@ const recent_withdraw = async (req, res) => {
   }
 };
 
-const updateInterest = async(req,res)=>{
+const maturityEmi = async(req,res)=>{
   try {
       const today = new Date();
-       const getData = await Emi.find({completation_date:today});
+       const getData = await Emi.find({});
+       const matchData = today == getData.maturityDate;
+      
        console.log(getData);
 
   } catch (error) {
@@ -213,5 +215,5 @@ module.exports = {
   get_emitransaction,
   withdraw,
   recent_withdraw,
-  updateInterest
+  maturityEmi
 };
