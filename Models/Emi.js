@@ -21,6 +21,7 @@ const EmiSchema = new mongoose.Schema(
           default: "cash",
           enum: ["cash", "card", "upi"],
         },
+        remark:{type:String},
         date: { type: Date, default: new Date() },
       },
     ],
@@ -30,7 +31,8 @@ const EmiSchema = new mongoose.Schema(
     },
     TotalInterest:{type:Number,default:0},
     maturityAmount:{type:Number,default:0},
-    maturityDate: { type: Date,},
+    maturityDate:{type:Date},
+    // maturityDate: { type: Date,},
     status: { type: String,default:"pending" },
   },
   { timestamps: true }

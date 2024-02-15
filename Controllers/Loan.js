@@ -230,7 +230,7 @@ const discount = async (req, res) => {
       const Updatediscount = await Loan.findByIdAndUpdate(
         req.params.id,
         {
-          status: "complete with discount",
+          status: "closed with discount",
           discount_amount: amount,
         },
         { new: true, useFindAndModify: false }

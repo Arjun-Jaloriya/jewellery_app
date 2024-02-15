@@ -14,6 +14,7 @@ const LoanSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    
     items: [
       {
         name: { type: String, required: true },

@@ -12,7 +12,7 @@ const add_emitransaction = async (req, res) => {
       transactions,
       maturityDate,
       TotalInterest,
-      maturityAmount
+      maturityAmount,
     } = req.body;
 
     switch (true) {
@@ -31,7 +31,6 @@ const add_emitransaction = async (req, res) => {
     let next2Year = new Date(today);
     next2Year.setFullYear(today.getFullYear() + 2);
 
-
     const add_emi = await new Emi({
       customerName,
       customerMobile,
@@ -39,9 +38,9 @@ const add_emitransaction = async (req, res) => {
       fixed_Emi,
       transactions,
       total_creditamount: transactions[0].amount,
-      maturityDate: next2Year,
+      maturityDate:next2Year,
       maturityAmount,
-      TotalInterest
+      TotalInterest,
     }).save();
     res.status(200).send({
       success: true,
@@ -139,7 +138,6 @@ const withdraw = async (req, res) => {
         req.params.id,
         {
           status: "withdraw",
-          
         },
         {
           new: true,
@@ -197,23 +195,71 @@ const recent_withdraw = async (req, res) => {
   }
 };
 
-const maturityEmi = async(req,res)=>{
+const maturityEmi = async (req, res) => {
   try {
-      const today = new Date();
-       const getData = await Emi.find({});
-       const matchData = today == getData.maturityDate;
-      
-       console.log(getData);
+    const today = new Date();
 
+    // Find all pending records
+    const getPendingData = await Emi.find({ status: "pending" });
+
+    // Iterate through each pending record
+    for (const data of getPendingData) {
+
+      const totalCreditAmount = data.total_creditamount;
+      // Calculate the maturity date after 24 months
+   
+
+      
+
+      // Check if the maturity date is today
+      if (isSameDate(maturityDate, today)) {
+        // Calculate total interest and sum of amount
+
+        const totalInterest = calculateTotalInterest(totalCreditAmount);
+
+        // Calculate maturity amount
+        const maturityAmount = totalCreditAmount + totalInterest;
+        // Update the record with status="mature", totalInterest, and maturityAmount
+        await Emi.findByIdAndUpdate(data._id, {
+          $set: {
+            status: "mature",
+            totalInterest: totalInterest,
+            maturityAmount: maturityAmount,
+            maturityDate:maturityDate
+          },
+        });
+
+        console.log(`Record with _id ${data._id} updated.`);
+      }
+    }
+
+    // Function to check if two dates have the same day, month, and year
+    function isSameDate(date1, date2) {
+      return date1.getDate() === date2.getDate() &&
+          date1.getMonth() === date2.getMonth() &&
+          date1.getFullYear() === date2.getFullYear();
+  }
+  
+
+ function calculateTotalInterest(totalCreditAmount) {
+    const annualInterestRate = 0.15; // 15% annual interest rate
+    const monthlyInterestRate = annualInterestRate / 12; // Convert annual rate to monthly
+    const months = 24; // 24 months
+
+    // Calculate total interest
+    const totalInterest = totalCreditAmount * monthlyInterestRate * months;
+
+    return totalInterest;
+}
   } catch (error) {
     console.log(error);
   }
-}
+};
 module.exports = {
   add_emitransaction,
   update_Emi,
   get_emitransaction,
   withdraw,
   recent_withdraw,
-  maturityEmi
+  maturityEmi,
 };

@@ -11,6 +11,7 @@ const OrderSchema = new mongoose.Schema(
     address: {
       type: String,
     },
+    remark:{type:String},
     items: [
       {
         name: { type: String, required: true },
