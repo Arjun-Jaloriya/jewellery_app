@@ -2,7 +2,7 @@ const Loan = require("../Models/Loan");
 const cron = require("node-cron");
 const nodemailer = require("nodemailer");
 const moment = require("moment");
-const axios = require('axios');
+const axios = require("axios");
 
 const addLoan = async (req, res) => {
   try {
@@ -150,10 +150,13 @@ const update_loantransaction = async (req, res) => {
     let updateLoanTransaction = await Loan.findByIdAndUpdate(
       req.params.id,
       {
-        updatedLoanCost: updatedLoanCost,
-        updatedInterest: updatedTotalInterest,
-        transactions: transaction,
+        $push: { transactions: transaction },
+        $set: {
+          updatedLoanCost: updatedLoanCost,
+          updatedInterest: updatedTotalInterest,
+        },
       },
+      {},
       { new: true, useFindAndModify: false }
     );
 
@@ -258,29 +261,28 @@ const discount = async (req, res) => {
 
 const sendemail = async (req, res) => {
   try {
-    
-      const today = new Date();
-      //  console.log( moment().format('DD-MM-YYYY'));
-      const pendingLoans = await Loan.aggregate([
-        {
-          $match: {
-            status: "pending",
-            $expr: {
-              $eq: [{ $dayOfMonth: "$lastUpdateDate" }, today.getDate()],
-            },
+    const today = new Date();
+    //  console.log( moment().format('DD-MM-YYYY'));
+    const pendingLoans = await Loan.aggregate([
+      {
+        $match: {
+          status: "pending",
+          $expr: {
+            $eq: [{ $dayOfMonth: "$lastUpdateDate" }, today.getDate()],
           },
         },
-      ]);
-      if (pendingLoans.length > 0) {
-        const getRemainData = pendingLoans.map((data) => {
-          return {
-            name: data.customerName,
-            cost: data.updatedLoanCost,
-          };
-        });
+      },
+    ]);
+    if (pendingLoans.length > 0) {
+      const getRemainData = pendingLoans.map((data) => {
+        return {
+          name: data.customerName,
+          cost: data.updatedLoanCost,
+        };
+      });
 
-        // Construct the HTML content for the email body with a table
-        const emailBody = `
+      // Construct the HTML content for the email body with a table
+      const emailBody = `
   <html>
   <head>
       <style>
@@ -309,7 +311,9 @@ const sendemail = async (req, res) => {
               </tr>
           </thead>
           <tbody>
-              ${getRemainData.map((item) => `
+              ${getRemainData
+                .map(
+                  (item) => `
                   <tr>
                       <td>${item.name}</td>
                       <td>${item.cost}</td>
@@ -323,42 +327,44 @@ const sendemail = async (req, res) => {
   </html>
 `;
 
-        // res.status(200).send({
-        //   success: true,
-        //   msg: "please check your email ",
-        // });
-        const tranporter = nodemailer.createTransport({
-          service: "gmail",
-          auth: {
-            user: process.env.SENDEMAIL,
-            pass: process.env.SENDPASSWORD,
-          },
-        });
+      // res.status(200).send({
+      //   success: true,
+      //   msg: "please check your email ",
+      // });
+      const tranporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.SENDEMAIL,
+          pass: process.env.SENDPASSWORD,
+        },
+      });
 
-        const mailOption = {
-          from: process.env.SENDEMAIL,
-          to: process.env.TOEMAIL,
-          subject: `Date - ${moment().format("DD-MM-YYYY")} Pending Loan Customers`,
-          html: emailBody, // Set HTML content
-        };
+      const mailOption = {
+        from: process.env.SENDEMAIL,
+        to: process.env.TOEMAIL,
+        subject: `Date - ${moment().format(
+          "DD-MM-YYYY"
+        )} Pending Loan Customers`,
+        html: emailBody, // Set HTML content
+      };
 
-        tranporter.sendMail(mailOption, (error, info) => {
-          // if (error) {
-          //   console.log(error.message);
-          //   return res.status(400).json({
-          //     msg: error.msg,
-          //     status: "false",
-          //     statusCode: res.statusCode,
-          //   });
-          // } else {
-          //   res.status(201).json({
-          //     msg: `Email sent ${info.response}`,
-          //     success: true,
-          //     statusCode: res.statusCode,
-          //   });
-          // }
-        });
-      }
+      tranporter.sendMail(mailOption, (error, info) => {
+        // if (error) {
+        //   console.log(error.message);
+        //   return res.status(400).json({
+        //     msg: error.msg,
+        //     status: "false",
+        //     statusCode: res.statusCode,
+        //   });
+        // } else {
+        //   res.status(201).json({
+        //     msg: `Email sent ${info.response}`,
+        //     success: true,
+        //     statusCode: res.statusCode,
+        //   });
+        // }
+      });
+    }
   } catch (error) {
     console.log(error);
   }

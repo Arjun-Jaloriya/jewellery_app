@@ -220,7 +220,7 @@ const maturityEmi = async (req, res) => {
         await Emi.findByIdAndUpdate(data._id, {
           $set: {
             status: "mature",
-            totalInterest: totalInterest,
+            TotalInterest: totalInterest,
             maturityAmount: maturityAmount,
             maturityDate: maturityDate,
           },

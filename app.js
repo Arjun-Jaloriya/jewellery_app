@@ -29,6 +29,7 @@ app.use("/api/report/",reportroute)
 cron.schedule("0 10 * * *", ()=>{
     sendemail()
 });
+cron.s
 
 app.listen(port,()=>{
     console.log(`app is live at port ${port}`);
