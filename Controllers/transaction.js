@@ -7,6 +7,7 @@ const add_transaction = async (req, res) => {
       customerName,
       customerMobile,
       address,
+      remark,
       items,
       replacement,
       isFullPayment,
@@ -64,6 +65,7 @@ const add_transaction = async (req, res) => {
       customerName,
       customerMobile,
       address,
+      remark,
       items,
       isFullPayment,
       total_amount,
@@ -87,7 +89,9 @@ const add_transaction = async (req, res) => {
                 0
               ) + advance_payment
             : advance_payment,
+            remark:remark
         },
+        
       ],
       status,
     }).save();
@@ -127,6 +131,7 @@ const get_transaction = async (req, res) => {
 const update_transaction = async (req, res) => {
   try {
     const { transactions } = req.body;
+    console.log(transactions);
     const lastOrder = await Order.findById(req.params.id);
 
     // Calculate the updated remaining amount
@@ -136,7 +141,7 @@ const update_transaction = async (req, res) => {
     const updatedata = await Order.findByIdAndUpdate(
       req.params.id,
       {
-        $push: { transactions: transactions },
+        $push: { transactions: transactions, },
         $set: { remainingAmount: updatedRemainingAmount },
       },
       { new: true, useFindAndModify: false }

@@ -38,7 +38,7 @@ const add_emitransaction = async (req, res) => {
       fixed_Emi,
       transactions,
       total_creditamount: transactions[0].amount,
-      maturityDate:next2Year,
+      maturityDate: next2Year,
       maturityAmount,
       TotalInterest,
     }).save();
@@ -204,12 +204,9 @@ const maturityEmi = async (req, res) => {
 
     // Iterate through each pending record
     for (const data of getPendingData) {
-
+      const maturityDate = data.maturityDate;
       const totalCreditAmount = data.total_creditamount;
       // Calculate the maturity date after 24 months
-   
-
-      
 
       // Check if the maturity date is today
       if (isSameDate(maturityDate, today)) {
@@ -225,7 +222,7 @@ const maturityEmi = async (req, res) => {
             status: "mature",
             totalInterest: totalInterest,
             maturityAmount: maturityAmount,
-            maturityDate:maturityDate
+            maturityDate: maturityDate,
           },
         });
 
@@ -235,22 +232,18 @@ const maturityEmi = async (req, res) => {
 
     // Function to check if two dates have the same day, month, and year
     function isSameDate(date1, date2) {
-      return date1.getDate() === date2.getDate() &&
-          date1.getMonth() === date2.getMonth() &&
-          date1.getFullYear() === date2.getFullYear();
-  }
-  
+      return (
+        date1.getDate() === date2.getDate() &&
+        date1.getMonth() === date2.getMonth() &&
+        date1.getFullYear() === date2.getFullYear()
+      );
+    }
 
- function calculateTotalInterest(totalCreditAmount) {
-    const annualInterestRate = 0.15; // 15% annual interest rate
-    const monthlyInterestRate = annualInterestRate / 12; // Convert annual rate to monthly
-    const months = 24; // 24 months
-
-    // Calculate total interest
-    const totalInterest = totalCreditAmount * monthlyInterestRate * months;
-
-    return totalInterest;
-}
+    function calculateTotalInterest(totalCreditAmount) {
+      const interestRate = 0.15; // 15% interest rate
+      const totalInterest = totalCreditAmount * interestRate;
+      return totalInterest;
+    }
   } catch (error) {
     console.log(error);
   }

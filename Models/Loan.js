@@ -14,7 +14,7 @@ const LoanSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    
+    remark:{type:String},
     items: [
       {
         name: { type: String, required: true },
@@ -43,6 +43,7 @@ const LoanSchema = new mongoose.Schema(
           default: "cash",
           enum: ["cash", "card", "upi"],
         },
+        remark:{type:String},
         date: { type: Date, default: new Date() },
       },
     ],
