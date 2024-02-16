@@ -156,7 +156,6 @@ const update_loantransaction = async (req, res) => {
           updatedInterest: updatedTotalInterest,
         },
       },
-      {},
       { new: true, useFindAndModify: false }
     );
 
@@ -370,6 +369,24 @@ const sendemail = async (req, res) => {
   }
 };
 
+const getLoanById = async (req, res) => {
+  try {
+    const LoanData = await Loan.findById(req.params.id);
+    res.status(200).send({
+      success: true,
+      msg: "Loan record fetched by id",
+      results: LoanData,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in getLoanById",
+      error,
+    });
+  }
+};
+
 module.exports = {
   addLoan,
   updateinterest,
@@ -377,4 +394,5 @@ module.exports = {
   getallLoan,
   discount,
   sendemail,
+  getLoanById,
 };

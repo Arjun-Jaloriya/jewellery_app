@@ -217,14 +217,18 @@ const maturityEmi = async (req, res) => {
         // Calculate maturity amount
         const maturityAmount = totalCreditAmount + totalInterest;
         // Update the record with status="mature", totalInterest, and maturityAmount
-        await Emi.findByIdAndUpdate(data._id, {
-          $set: {
-            status: "mature",
-            TotalInterest: totalInterest,
-            maturityAmount: maturityAmount,
-            maturityDate: maturityDate,
+        await Emi.findByIdAndUpdate(
+          data._id,
+          {
+            $set: {
+              status: "mature",
+              TotalInterest: totalInterest,
+              maturityAmount: maturityAmount,
+              maturityDate: maturityDate,
+            },
           },
-        });
+          { new: true, useFindAndModify: false }
+        );
 
         console.log(`Record with _id ${data._id} updated.`);
       }
@@ -248,6 +252,24 @@ const maturityEmi = async (req, res) => {
     console.log(error);
   }
 };
+
+const getEmiById = async (req, res) => {
+  try {
+    const getEmiData = await Emi.findById(req.params.id);
+    res.status(200).send({
+      success: true,
+      msg: "record fetched by id",
+      results: getEmiData,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in getemibyid",
+      error,
+    });
+  }
+};
 module.exports = {
   add_emitransaction,
   update_Emi,
@@ -255,4 +277,5 @@ module.exports = {
   withdraw,
   recent_withdraw,
   maturityEmi,
+  getEmiById,
 };
