@@ -21,6 +21,8 @@ const register = async (req, res) => {
 
       case !address:
         return res.send({ message: "Address is Required" });
+        case !shopName:
+        return res.send({ message: "shopName is Required" });
     }
     const existinguser = await User.findOne({ email });
 
@@ -38,6 +40,7 @@ const register = async (req, res) => {
       password: hashPassword,
       address: address,
       phone: phone,
+      shopName:shopName
     });
     await userData.save();
     res.status(200).send({

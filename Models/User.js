@@ -7,6 +7,7 @@ const Userschema = new mongoose.Schema(
     password: { type: String, required: true },
     phone: { type: Number, required: true, unique: true },
     address: { type: String, required: true },
+    shopName:{type:String,required:true},
     role: { type: Number, default: 0 },
     token: {
       type: String,
