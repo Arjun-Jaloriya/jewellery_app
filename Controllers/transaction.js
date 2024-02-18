@@ -264,7 +264,7 @@ const cancel_order = async (req, res) => {
     const cancelorder = await Order.findByIdAndUpdate(
       req.params.id,
       {
-        status: "cancel",
+        status: "Cancelled",
       },
       { new: true, useFindAndModify: false }
     );
