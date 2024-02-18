@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 
 const register = async (req, res) => {
   try {
-    const { name, email, password, phone, address, role, status } = req.body;
+    const { name, email, password, phone, address, role, status ,shopName} = req.body;
 
     switch (true) {
       case !name:
