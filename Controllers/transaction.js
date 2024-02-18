@@ -303,7 +303,7 @@ const discount = async (req, res) => {
         results: Updatediscount,
       });
     } else {
-      return res.status(200).send({
+      return res.status(500).send({
         success: true,
         msg: "please enter amount less than remainingAmount",
       });
