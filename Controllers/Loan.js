@@ -102,14 +102,14 @@ const updateinterest = async (req, res) => {
         { new: true, useFindAndModify: false }
       );
 
-      return res.status(200).send({
-        suceess: true,
+      res.status(200).send({
+        success: true,
         msg: "update daily interest successfully",
         results: updatedata,
       });
     } else {
       return res.status(200).send({
-        success: true,
+        success: false,
         message: "No update needed for interest",
         totalInterest: olddata.updatedInterest,
         results: olddata,
@@ -129,57 +129,67 @@ const update_loantransaction = async (req, res) => {
   try {
     const { transaction } = req.body;
     let lastloandata = await Loan.findById(req.params.id);
+    
+    if (
+      transaction[0].amount <=
+      lastloandata.updatedLoanCost + lastloandata.updatedInterest
+    ) {
+      // Subtract deposit amount from total interest
+      const updatedTotalInterest = Math.max(
+        lastloandata.updatedInterest - transaction[0].amount,
+        0
+      );
 
-    // Subtract deposit amount from total interest
-    const updatedTotalInterest = Math.max(
-      lastloandata.updatedInterest - transaction[0].amount,
-      0
-    );
-
-    // Calculate remaining deposit amount after subtracting from total interest
-    const remainingDeposit =
-      transaction[0].amount -
-      (lastloandata.updatedInterest - updatedTotalInterest);
+      // Calculate remaining deposit amount after subtracting from total interest
+      const remainingDeposit =
+        transaction[0].amount -
+        (lastloandata.updatedInterest - updatedTotalInterest);
       // console.log(remainingDeposit);
 
-    // Subtract remaining deposit from updated loan cost
-    const updatedLoanCost = Math.max(
-      lastloandata.updatedLoanCost - remainingDeposit,
-      0
-    );
+      // Subtract remaining deposit from updated loan cost
+      const updatedLoanCost = Math.max(
+        lastloandata.updatedLoanCost - remainingDeposit,
+        0
+      );
 
-    let updateLoanTransaction = await Loan.findByIdAndUpdate(
-      req.params.id,
-      {
-        $push: { transactions: transaction },
-        $set: {
-          updatedLoanCost: updatedLoanCost,
-          updatedInterest: updatedTotalInterest,
-        },
-      },
-      { new: true, useFindAndModify: false }
-    );
-
-    if (updatedLoanCost == 0) {
-      let updatestatus = await Loan.findByIdAndUpdate(
+      let updateLoanTransaction = await Loan.findByIdAndUpdate(
         req.params.id,
         {
-          status: "closed",
+          $push: { transactions: transaction },
+          $set: {
+            updatedLoanCost: updatedLoanCost,
+            updatedInterest: updatedTotalInterest,
+          },
         },
         { new: true, useFindAndModify: false }
       );
+
+      if (updatedLoanCost == 0) {
+        let updatestatus = await Loan.findByIdAndUpdate(
+          req.params.id,
+          {
+            status: "closed",
+          },
+          { new: true, useFindAndModify: false }
+        );
+        return res.status(200).send({
+          success: true,
+          msg: "your Loan is closed",
+          resultStatus: updatestatus,
+          results: updateLoanTransaction,
+        });
+      }
       return res.status(200).send({
         success: true,
-        msg: "your Loan is closed",
-        resultStatus: updatestatus,
+        msg: "successfully update loan-transaction",
         results: updateLoanTransaction,
       });
+    } else {
+      return res.status(200).send({
+        success: false,
+        msg: "please enter amount less than updatedLoanCost + updatedInterest",
+      });
     }
-    return res.status(200).send({
-      success: true,
-      msg: "successfully update loan-transaction",
-      results: updateLoanTransaction,
-    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
@@ -245,7 +255,7 @@ const discount = async (req, res) => {
       });
     } else {
       return res.status(200).send({
-        success: true,
+        success: false,
         msg: "please enter amount less than updatedLoanCost",
       });
     }

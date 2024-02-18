@@ -168,7 +168,7 @@ const update_transaction = async (req, res) => {
         results: updatedata,
       });
     } else {
-      return res.status(500).send({
+      return res.status(200).send({
         success: false,
         msg: "please enter amount less than remainingAmount",
       });
@@ -303,8 +303,8 @@ const discount = async (req, res) => {
         results: Updatediscount,
       });
     } else {
-      return res.status(500).send({
-        success: true,
+      return res.status(200).send({
+        success: false,
         msg: "please enter amount less than remainingAmount",
       });
     }
