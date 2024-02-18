@@ -140,6 +140,7 @@ const update_loantransaction = async (req, res) => {
     const remainingDeposit =
       transaction[0].amount -
       (lastloandata.updatedInterest - updatedTotalInterest);
+      // console.log(remainingDeposit);
 
     // Subtract remaining deposit from updated loan cost
     const updatedLoanCost = Math.max(
@@ -163,7 +164,7 @@ const update_loantransaction = async (req, res) => {
       let updatestatus = await Loan.findByIdAndUpdate(
         req.params.id,
         {
-          status: "Loan closed",
+          status: "closed",
         },
         { new: true, useFindAndModify: false }
       );

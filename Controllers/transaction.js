@@ -22,7 +22,7 @@ const add_transaction = async (req, res) => {
       paymentType,
       status,
     } = req.body;
-    
+
     switch (true) {
       case !customerName:
         return res.send({ error: "customerName is required" });
@@ -43,7 +43,7 @@ const add_transaction = async (req, res) => {
     }
 
     if (isFullPayment == true) {
-      status = "Payment_Completed";
+      status = "Completed";
       remainingAmount = 0;
     } else {
       if (replacement && replacement.length > 0) {
@@ -58,7 +58,7 @@ const add_transaction = async (req, res) => {
       } else {
         remainingAmount = total_amount - advance_payment;
       }
-      status = "Payment_Pending";
+      status = "Pending";
     }
 
     const adddata = new Order({
@@ -89,9 +89,8 @@ const add_transaction = async (req, res) => {
                 0
               ) + advance_payment
             : advance_payment,
-            remark:remark
+          remark: remark,
         },
-        
       ],
       status,
     }).save();
@@ -131,43 +130,50 @@ const get_transaction = async (req, res) => {
 const update_transaction = async (req, res) => {
   try {
     const { transactions } = req.body;
-    console.log(transactions);
+    // console.log(transactions);
     const lastOrder = await Order.findById(req.params.id);
 
-    // Calculate the updated remaining amount
-    const updatedRemainingAmount =
-      lastOrder.remainingAmount - transactions[0].amount;
+    if (transactions[0].amount <= lastOrder.remainingAmount) {
+      const updatedRemainingAmount =
+        lastOrder.remainingAmount - transactions[0].amount;
 
-    const updatedata = await Order.findByIdAndUpdate(
-      req.params.id,
-      {
-        $push: { transactions: transactions, },
-        $set: { remainingAmount: updatedRemainingAmount },
-      },
-      { new: true, useFindAndModify: false }
-    );
-
-    if (updatedRemainingAmount == 0) {
-      const UpdateStatus = await Order.findByIdAndUpdate(
+      const updatedata = await Order.findByIdAndUpdate(
         req.params.id,
         {
-          status: "Payment_Completed",
+          $push: { transactions: transactions },
+          $set: { remainingAmount: updatedRemainingAmount },
         },
         { new: true, useFindAndModify: false }
       );
+
+      if (updatedRemainingAmount == 0) {
+        const UpdateStatus = await Order.findByIdAndUpdate(
+          req.params.id,
+          {
+            status: "Completed",
+          },
+          { new: true, useFindAndModify: false }
+        );
+        return res.status(200).send({
+          success: true,
+          msg: "successfully updated transaction and status",
+          results: updatedata,
+          resultStatus: UpdateStatus,
+        });
+      }
+
       return res.status(200).send({
         success: true,
-        msg: "successfully updated transaction and status",
+        msg: "successfully updated transaction",
         results: updatedata,
-        resultStatus: UpdateStatus,
+      });
+    } else {
+      return res.status(500).send({
+        success: false,
+        msg: "please enter amount less than remainingAmount",
       });
     }
-
-    return res.status(200).send({
-      success: true,
-      msg: "successfully updated transaction",
-      results: updatedata,
-    });
+    // Calculate the updated remaining amount
   } catch (error) {
     // console.log(error);
     return res.status(500).send({
@@ -231,7 +237,7 @@ const pending_status = async (req, res) => {
       $and: [
         { customerName: { $regex: search, $options: "i" } },
         {
-          status: "Payment_Pending",
+          status: "Pending",
         },
       ],
     })
@@ -258,7 +264,7 @@ const cancel_order = async (req, res) => {
     const cancelorder = await Order.findByIdAndUpdate(
       req.params.id,
       {
-        status: "cancel_order",
+        status: "cancel",
       },
       { new: true, useFindAndModify: false }
     );
@@ -281,8 +287,8 @@ const discount = async (req, res) => {
     let { amount } = req.body;
     const oldData = await Order.findById(req.params.id);
     const oldRemainingamount = oldData.remainingAmount;
-    
-    if (amount <= oldRemainingamount ) {
+
+    if (amount <= oldRemainingamount) {
       const Updatediscount = await Order.findByIdAndUpdate(
         req.params.id,
         {

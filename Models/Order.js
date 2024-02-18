@@ -21,6 +21,8 @@ const OrderSchema = new mongoose.Schema(
         type: { type: String, required: true, default: "gold" },
         item_no: { type: String, required: true },
         labour: { type: Number, required: true },
+        itemRate:{type:Number,required:true}
+
       },
     ],
     replacement: [

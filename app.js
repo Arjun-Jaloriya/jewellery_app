@@ -14,6 +14,7 @@ const emiroutes = require("./Routes/EmiTransaction");
 const loanroutes = require("./Routes/Loan");
 const reportroute = require("./Routes/report");
 const { sendemail } = require("./Controllers/Loan");
+const { maturityEmi } = require("./Controllers/emi");
 
 //middleware
 app.use(express.json());
@@ -29,7 +30,9 @@ app.use("/api/report/",reportroute)
 cron.schedule("0 10 * * *", ()=>{
     sendemail()
 });
-cron.s
+cron.schedule("0 0 * * *",()=>{
+    maturityEmi()
+})
 
 app.listen(port,()=>{
     console.log(`app is live at port ${port}`);

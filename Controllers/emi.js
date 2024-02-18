@@ -60,23 +60,34 @@ const update_Emi = async (req, res) => {
   try {
     const { transactions } = req.body;
     let lastemi = await Emi.findById(req.params.id);
-    let lastamount = lastemi.total_creditamount;
+    const matureAmount = lastemi.fixed_Emi;
+    // console.log(matureAmount);
+    const totalMatureAmount = matureAmount * 24;
+    // console.log(totalMatureAmount);
+    if (lastemi.total_creditamount + transactions[0].amount <= totalMatureAmount) {
+      let lastamount = lastemi.total_creditamount;
 
-    let updatedamount = lastamount + transactions[0].amount;
+      let updatedamount = lastamount + transactions[0].amount;
 
-    let update_Totalamount = await Emi.findByIdAndUpdate(
-      req.params.id,
-      {
-        $push: { transactions: transactions },
-        $set: { total_creditamount: updatedamount },
-      },
-      { new: true, useFindAndModify: false }
-    );
-    res.status(200).send({
-      success: true,
-      msg: "update emi successfully",
-      results: update_Totalamount,
-    });
+      let update_Totalamount = await Emi.findByIdAndUpdate(
+        req.params.id,
+        {
+          $push: { transactions: transactions },
+          $set: { total_creditamount: updatedamount },
+        },
+        { new: true, useFindAndModify: false }
+      );
+      res.status(200).send({
+        success: true,
+        msg: "update emi successfully",
+        results: update_Totalamount,
+      });
+    } else {
+      return res.status(500).send({
+        success: false,
+        msg: "please enter amount less than totalMatureAmount",
+      });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).send({
@@ -198,7 +209,7 @@ const recent_withdraw = async (req, res) => {
 const maturityEmi = async (req, res) => {
   try {
     const today = new Date();
-
+    log;
     // Find all pending records
     const getPendingData = await Emi.find({ status: "pending" });
 
@@ -230,7 +241,7 @@ const maturityEmi = async (req, res) => {
           { new: true, useFindAndModify: false }
         );
 
-        console.log(`Record with _id ${data._id} updated.`);
+        // console.log(`Record with _id ${data._id} updated.`);
       }
     }
 
