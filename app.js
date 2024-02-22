@@ -13,8 +13,8 @@ const transactionroute = require("./Routes/transaction");
 const emiroutes = require("./Routes/EmiTransaction");
 const loanroutes = require("./Routes/Loan");
 const reportroute = require("./Routes/report");
-const { sendemail } = require("./Controllers/Loan");
 const { maturityEmi } = require("./Controllers/emi");
+const { sendemail } = require("./Controllers/transaction");
 
 //middleware
 app.use(express.json());

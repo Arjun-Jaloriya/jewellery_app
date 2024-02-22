@@ -64,7 +64,10 @@ const update_Emi = async (req, res) => {
     // console.log(matureAmount);
     const totalMatureAmount = matureAmount * 24;
     // console.log(totalMatureAmount);
-    if (lastemi.total_creditamount + transactions[0].amount <= totalMatureAmount) {
+    if (
+      lastemi.total_creditamount + transactions[0].amount <=
+      totalMatureAmount
+    ) {
       let lastamount = lastemi.total_creditamount;
 
       let updatedamount = lastamount + transactions[0].amount;
@@ -209,10 +212,12 @@ const recent_withdraw = async (req, res) => {
 const maturityEmi = async (req, res) => {
   try {
     const today = new Date();
-    log;
     // Find all pending records
     const getPendingData = await Emi.find({ status: "pending" });
 
+    if(getPendingData.length > 0){
+      
+    }
     // Iterate through each pending record
     for (const data of getPendingData) {
       const maturityDate = data.maturityDate;
@@ -281,6 +286,44 @@ const getEmiById = async (req, res) => {
     });
   }
 };
+const deleteemi = async (req, res) => {
+  try {
+    const today = new Date();
+    const withdrawRecords = await Emi.find({ status: "withdraw" }).select(
+      "maturityDate"
+    );
+    // console.log(withdrawRecords);
+    if (withdrawRecords.length > 0) {
+      const modifiedDates = withdrawRecords.map((record) => {
+        const modifiedDate = new Date(record.maturityDate);
+        modifiedDate.setDate(modifiedDate.getDate() + 15);
+        return modifiedDate;
+      });
+
+
+
+      // console.log(modifiedDates);
+      // let deletedCount = 0;
+      // for (let i = 0; i < withdrawRecords.length; i++) {
+      //   if (modifiedDates[i].toDateString() === today.toDateString()) {
+      //     await Emi.deleteOne({ _id: withdrawRecords[i]._id });
+      //     deletedCount++;
+      //   }
+      // }
+    }
+
+    // function isSameDate(date1, date2) {
+    //   return (
+    //     date1.getDate() === date2.getDate() &&
+    //     date1.getMonth() === date2.getMonth() &&
+    //     date1.getFullYear() === date2.getFullYear()
+    //   );
+    // }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 module.exports = {
   add_emitransaction,
   update_Emi,
@@ -289,4 +332,5 @@ module.exports = {
   recent_withdraw,
   maturityEmi,
   getEmiById,
+  deleteemi,
 };

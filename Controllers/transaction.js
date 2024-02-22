@@ -1,5 +1,6 @@
 const moment = require("moment");
 const Order = require("../Models/Order");
+const nodemailer = require("nodemailer");
 
 const add_transaction = async (req, res) => {
   try {
@@ -18,7 +19,7 @@ const add_transaction = async (req, res) => {
       advance_payment,
       dueDate,
       discount_amount,
-      transactions,
+      transactions, // Remove transactions from here
       paymentType,
       status,
     } = req.body;
@@ -32,22 +33,25 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "address is required" });
       case !items:
         return res.send({ error: "items is required" });
-      case !total_amount:
-        return res.send({ error: "total_amount is required" });
-      case !taxRate:
-        return res.send({ error: "taxRate is required" });
-      case !taxAmount:
-        return res.send({ error: "taxAmount is required" });
-      case !subTotal:
-        return res.send({ error: "subTotal is required" });
     }
 
+    // Define remainingAmount and status based on isFullPayment
+    let remainingAmount;
     if (isFullPayment == true) {
-      status = "Completed";
-      remainingAmount = 0;
+      if (total_amount === 0) {
+        status = "price_not_fixed";
+        remainingAmount = 0;
+        transactions = [];
+        replacement = replacement; // Empty transactions array
+      } else {
+        status = "Completed";
+        remainingAmount = 0;
+        replacement = replacement;
+        transactions = [];
+      }
     } else {
+      // Calculate remainingAmount and set status to "Pending"
       if (replacement && replacement.length > 0) {
-        // Calculate the sum of replacement.total_Price
         const replacementTotalPriceSum = replacement.reduce(
           (sum, repl) => sum + (repl.total_Price || 0),
           0
@@ -55,12 +59,25 @@ const add_transaction = async (req, res) => {
 
         remainingAmount =
           total_amount - (replacementTotalPriceSum + advance_payment);
+        transactions = [
+          {
+            amount: replacementTotalPriceSum + advance_payment,
+            remark: remark,
+          },
+        ];
       } else {
         remainingAmount = total_amount - advance_payment;
+        transactions = [
+          {
+            amount: advance_payment,
+            remark: remark,
+          },
+        ];
       }
       status = "Pending";
     }
 
+    // Create Order document
     const adddata = new Order({
       customerName,
       customerMobile,
@@ -77,21 +94,15 @@ const add_transaction = async (req, res) => {
       advance_payment: replacement
         ? replacement.reduce((sum, repl) => sum + (repl.total_Price || 0), 0) +
           advance_payment
-        : advance_payment,
+          ? advance_payment
+          : ""
+        : advance_payment
+        ? advance_payment
+        : "",
       remainingAmount,
       dueDate,
       paymentType,
-      transactions: [
-        {
-          amount: replacement
-            ? replacement.reduce(
-                (sum, repl) => sum + (repl.total_Price || 0),
-                0
-              ) + advance_payment
-            : advance_payment,
-          remark: remark,
-        },
-      ],
+      transactions,
       status,
     }).save();
 
@@ -318,6 +329,295 @@ const discount = async (req, res) => {
   }
 };
 
+const sendemail = async (req, res) => {
+  try {
+    const today = new Date();
+
+    const arrayFind = await Order.aggregate([
+      {
+        $match: {
+          status: "Pending",
+          transactions: { $exists: true, $ne: [] }, // Ensure "transactions" array exists and is not empty
+        },
+      },
+      {
+        $project: {
+          name: "$customerName",
+          amount: "$remainingAmount",
+          phone: "$customerMobile",
+          lastTransactionDate: { $arrayElemAt: ["$transactions.date", -1] }, // Extract date from the last transaction object
+        },
+      },
+      {
+        $match: {
+          lastTransactionDate: {
+            $gte: new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate(),
+              0,
+              0,
+              0
+            ), // Start of today
+            $lt: new Date(
+              today.getFullYear(),
+              today.getMonth(),
+              today.getDate() + 1,
+              0,
+              0,
+              0
+            ), // Start of tomorrow
+          },
+        },
+      },
+    ]);
+
+    if (arrayFind.length > 0) {
+      const getRemainData = arrayFind.map((data) => {
+        return {
+          name: data.name,
+          amount: data.amount,
+          phone: data.phone,
+        };
+      });
+      // console.log(getRemainData);
+
+      // Construct the HTML content for the email body with a table
+      const emailBody = `
+      <html>
+      <head>
+          <style>
+              table {
+                  font-family: Arial, sans-serif;
+                  border-collapse: collapse;
+                  width: 100%;
+              }
+              th, td {
+                  border: 1px solid #dddddd;
+                  text-align: left;
+                  padding: 8px;
+              }
+              th {
+                  background-color: #f2f2f2;
+              }
+          </style>
+      </head>
+      <body>
+          <h2>Pending Transaction Customers - ${today.toDateString()}</h2>
+          <table>
+              <thead>
+                  <tr>
+                      <th>Name</th>
+                      <th>Amount</th>
+                      <th>Phone</th>
+                  </tr>
+              </thead>
+              <tbody>
+                  ${getRemainData
+                    .map(
+                      (item) => `
+                      <tr>
+                          <td>${item.name}</td>
+                          <td>${item.amount}</td>
+                          <td>${item.phone}</td>
+                      </tr>
+                  `
+                    )
+                    .join("")}
+              </tbody>
+          </table>
+      </body>
+      </html>
+    `;
+
+      const tranporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.SENDEMAIL,
+          pass: process.env.SENDPASSWORD,
+        },
+      });
+
+      const mailOption = {
+        from: process.env.SENDEMAIL,
+        to: process.env.TOEMAIL,
+        subject: `Date - ${moment().format(
+          "DD-MM-YYYY"
+        )} Pending Transaction Customers`,
+        html: emailBody, // Set HTML content
+      };
+
+      tranporter.sendMail(mailOption, (error, info) => {});
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+const edittransaction = async (req, res) => {
+  try {
+    let {
+      customerName,
+      customerMobile,
+      address,
+      remark,
+      items,
+      replacement,
+      isFullPayment,
+      taxRate,
+      taxAmount,
+      subTotal,
+      total_amount,
+      advance_payment,
+      dueDate,
+      discount_amount,
+      transactions,
+      paymentType,
+      status,
+    } = req.body;
+    switch (true) {
+      case !customerName:
+        return res.send({ error: "customerName is required" });
+      case !customerMobile:
+        return res.send({ error: "customerMobile is required" });
+      case !address:
+        return res.send({ error: "address is required" });
+      case !items:
+        return res.send({ error: "items is required" });
+    }
+    let remainingAmount;
+    if (total_amount > 0) {
+      if (isFullPayment == true) {
+        const updateOrder = await Order.findByIdAndUpdate(
+          req.params.id,
+          {
+            $set: {
+              customerName,
+              customerMobile,
+              address,
+              remark,
+              items,
+              replacement,
+              isFullPayment,
+              remainingAmount: 0,
+              taxRate,
+              taxAmount,
+              subTotal,
+              total_amount,
+              advance_payment,
+              dueDate,
+              discount_amount,
+              transactions,
+              paymentType,
+              status: "Completed",
+            },
+          },
+          { new: true, useFindAndModify: false }
+        );
+        res.status(200).send({
+          success: true,
+          msg: "updated successfully",
+          results: updateOrder,
+        });
+      } else {
+        if (replacement && replacement.length > 0) {
+          const replacementTotalPriceSum = replacement.reduce(
+            (sum, repl) => sum + (repl.total_Price || 0),
+            0
+          );
+          remainingAmount =
+            total_amount - (replacementTotalPriceSum + advance_payment);
+          transactions = [
+            {
+              amount: replacementTotalPriceSum + advance_payment,
+              date: new Date(),
+              remark: remark,
+            },
+          ];
+          
+        } else {
+          remainingAmount = total_amount - advance_payment;
+          transactions = [
+            {
+              amount: advance_payment,
+              date: new Date(),
+              remark: remark,
+            },
+          ];
+         
+        }
+        const updateOrder = await Order.findByIdAndUpdate(
+          req.params.id,
+          {
+            $set: {
+              customerName,
+              customerMobile,
+              address,
+              remark,
+              items,
+              replacement,
+              isFullPayment,
+              remainingAmount,
+              taxRate,
+              taxAmount,
+              subTotal,
+              total_amount,
+              advance_payment,
+              dueDate,
+              discount_amount,
+              transactions,
+              paymentType,
+              status: "Pending",
+            },
+          },
+          { new: true, useFindAndModify: false }
+        );
+        res.status(200).send({
+          success: true,
+          msg: "updated successfully",
+          results: updateOrder,
+        });
+      }
+    } else {
+      const updateOrder = await Order.findByIdAndUpdate(
+        req.params.id,
+        {
+          $set: {
+            customerName,
+            customerMobile,
+            address,
+            remark,
+            items,
+            replacement,
+            isFullPayment,
+            taxRate,
+            taxAmount,
+            subTotal,
+            total_amount,
+            advance_payment,
+            dueDate,
+            discount_amount,
+            transactions,
+            paymentType,
+            status,
+          },
+        },
+        { new: true, useFindAndModify: false }
+      );
+      res.status(200).send({
+        success: true,
+        msg: "updated successfully",
+        results: updateOrder,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      msg: "error in editTransaction",
+      error: error,
+    });
+  }
+};
 module.exports = {
   add_transaction,
   get_transaction,
@@ -326,4 +626,6 @@ module.exports = {
   pending_status,
   cancel_order,
   discount,
+  sendemail,
+  edittransaction,
 };

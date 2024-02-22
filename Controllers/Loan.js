@@ -269,116 +269,116 @@ const discount = async (req, res) => {
   }
 };
 
-const sendemail = async (req, res) => {
-  try {
-    const today = new Date();
-    //  console.log( moment().format('DD-MM-YYYY'));
-    const pendingLoans = await Loan.aggregate([
-      {
-        $match: {
-          status: "pending",
-          $expr: {
-            $eq: [{ $dayOfMonth: "$lastUpdateDate" }, today.getDate()],
-          },
-        },
-      },
-    ]);
-    if (pendingLoans.length > 0) {
-      const getRemainData = pendingLoans.map((data) => {
-        return {
-          name: data.customerName,
-          cost: data.updatedLoanCost,
-        };
-      });
+// const sendemail = async (req, res) => {
+//   try {
+//     const today = new Date();
+//     //  console.log( moment().format('DD-MM-YYYY'));
+//     const pendingLoans = await Loan.aggregate([
+//       {
+//         $match: {
+//           status: "pending",
+//           $expr: {
+//             $eq: [{ $dayOfMonth: "$lastUpdateDate" }, today.getDate()],
+//           },
+//         },
+//       },
+//     ]);
+//     if (pendingLoans.length > 0) {
+//       const getRemainData = pendingLoans.map((data) => {
+//         return {
+//           name: data.customerName,
+//           cost: data.updatedLoanCost,
+//         };
+//       });
 
-      // Construct the HTML content for the email body with a table
-      const emailBody = `
-  <html>
-  <head>
-      <style>
-          table {
-              font-family: Arial, sans-serif;
-              border-collapse: collapse;
-              width: 100%;
-          }
-          th, td {
-              border: 1px solid #dddddd;
-              text-align: left;
-              padding: 8px;
-          }
-          th {
-              background-color: #f2f2f2;
-          }
-      </style>
-  </head>
-  <body>
-      <h2>Pending Loan Customers - ${today.toDateString()}</h2>
-      <table>
-          <thead>
-              <tr>
-                  <th>Name</th>
-                  <th>Cost</th>
-              </tr>
-          </thead>
-          <tbody>
-              ${getRemainData
-                .map(
-                  (item) => `
-                  <tr>
-                      <td>${item.name}</td>
-                      <td>${item.cost}</td>
-                  </tr>
-              `
-                )
-                .join("")}
-          </tbody>
-      </table>
-  </body>
-  </html>
-`;
+//       // Construct the HTML content for the email body with a table
+//       const emailBody = `
+//   <html>
+//   <head>
+//       <style>
+//           table {
+//               font-family: Arial, sans-serif;
+//               border-collapse: collapse;
+//               width: 100%;
+//           }
+//           th, td {
+//               border: 1px solid #dddddd;
+//               text-align: left;
+//               padding: 8px;
+//           }
+//           th {
+//               background-color: #f2f2f2;
+//           }
+//       </style>
+//   </head>
+//   <body>
+//       <h2>Pending Loan Customers - ${today.toDateString()}</h2>
+//       <table>
+//           <thead>
+//               <tr>
+//                   <th>Name</th>
+//                   <th>Cost</th>
+//               </tr>
+//           </thead>
+//           <tbody>
+//               ${getRemainData
+//                 .map(
+//                   (item) => `
+//                   <tr>
+//                       <td>${item.name}</td>
+//                       <td>${item.cost}</td>
+//                   </tr>
+//               `
+//                 )
+//                 .join("")}
+//           </tbody>
+//       </table>
+//   </body>
+//   </html>
+// `;
 
-      // res.status(200).send({
-      //   success: true,
-      //   msg: "please check your email ",
-      // });
-      const tranporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-          user: process.env.SENDEMAIL,
-          pass: process.env.SENDPASSWORD,
-        },
-      });
+//       // res.status(200).send({
+//       //   success: true,
+//       //   msg: "please check your email ",
+//       // });
+//       const tranporter = nodemailer.createTransport({
+//         service: "gmail",
+//         auth: {
+//           user: process.env.SENDEMAIL,
+//           pass: process.env.SENDPASSWORD,
+//         },
+//       });
 
-      const mailOption = {
-        from: process.env.SENDEMAIL,
-        to: process.env.TOEMAIL,
-        subject: `Date - ${moment().format(
-          "DD-MM-YYYY"
-        )} Pending Loan Customers`,
-        html: emailBody, // Set HTML content
-      };
+//       const mailOption = {
+//         from: process.env.SENDEMAIL,
+//         to: process.env.TOEMAIL,
+//         subject: `Date - ${moment().format(
+//           "DD-MM-YYYY"
+//         )} Pending Loan Customers`,
+//         html: emailBody, // Set HTML content
+//       };
 
-      tranporter.sendMail(mailOption, (error, info) => {
-        // if (error) {
-        //   console.log(error.message);
-        //   return res.status(400).json({
-        //     msg: error.msg,
-        //     status: "false",
-        //     statusCode: res.statusCode,
-        //   });
-        // } else {
-        //   res.status(201).json({
-        //     msg: `Email sent ${info.response}`,
-        //     success: true,
-        //     statusCode: res.statusCode,
-        //   });
-        // }
-      });
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
+//       tranporter.sendMail(mailOption, (error, info) => {
+//         // if (error) {
+//         //   console.log(error.message);
+//         //   return res.status(400).json({
+//         //     msg: error.msg,
+//         //     status: "false",
+//         //     statusCode: res.statusCode,
+//         //   });
+//         // } else {
+//         //   res.status(201).json({
+//         //     msg: `Email sent ${info.response}`,
+//         //     success: true,
+//         //     statusCode: res.statusCode,
+//         //   });
+//         // }
+//       });
+//     }
+//   } catch (error) {
+//     console.log(error);
+//   }
+// };
 
 const getLoanById = async (req, res) => {
   try {
@@ -404,6 +404,6 @@ module.exports = {
   update_loantransaction,
   getallLoan,
   discount,
-  sendemail,
+  // sendemail,
   getLoanById,
 };

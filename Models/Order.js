@@ -17,11 +17,11 @@ const OrderSchema = new mongoose.Schema(
         name: { type: String, required: true },
         weight: { type: Number, required: true },
         quantity: { type: Number, required: true },
-        price: { type: Number, required: true },
+        price: { type: Number, required: true ,default:0},
         type: { type: String, required: true, default: "gold" },
         item_no: { type: String, required: true },
-        labour: { type: Number, required: true },
-        itemRate:{type:Number,required:true}
+        labour: { type: Number, required: true,default:0 },
+        itemRate:{type:Number,required:true,default:0}
 
       },
     ],
@@ -31,7 +31,7 @@ const OrderSchema = new mongoose.Schema(
         description: { type: String },
         weight: { type: Number },
         quantity: { type: Number },
-        total_Price: { type: Number },
+        total_Price: { type: Number ,default:0},
         type: { type: String, default: "gold" },
       },
     ],
@@ -39,17 +39,17 @@ const OrderSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    taxRate: { type: Number },
-    subTotal: { type: Number },
-    taxAmount: { type: Number },
+    taxRate: { type: Number,default:0 },
+    subTotal: { type: Number ,default:0},
+    taxAmount: { type: Number ,default:0},
     discount_amount: { type: Number,default:0 },
     total_amount: {
       type: Number,
       required: true,
+      default:0
     },
     advance_payment: {
       type: Number,
-      default: 0,
     },
     remainingAmount: {
       type: Number,
@@ -58,14 +58,13 @@ const OrderSchema = new mongoose.Schema(
 
     transactions: [
       {
-        amount: { type: Number, default: 0 },
-        date: { type: Date, default: new Date() },
+        amount: { type: Number },
+        date: { type: Date },
         paymentType: {
           type: String,
-          default: "cash",
           enum: ["cash", "card", "upi"],
         },
-        remark:{type:String}
+        remark: { type: String },
       },
     ],
     paymentType: {
