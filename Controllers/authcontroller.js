@@ -91,7 +91,7 @@ const login = async (req, res) => {
     }
 
     const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1m",
+      expiresIn: "1d",
     });
 
     user.token = await User.findByIdAndUpdate(
@@ -133,17 +133,6 @@ const Profile_Token = async (req, res) => {
       return res.status(401).send({
         success: false,
         msg: "No token provided",
-      });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const currentTime = Math.floor(Date.now() / 1000); // Get current time in seconds
-
-    if (decoded.exp < currentTime) {
-      return res.status(401).send({
-        success: false,
-        msg: "Token has expired",
       });
     }
 
