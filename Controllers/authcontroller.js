@@ -91,7 +91,7 @@ const login = async (req, res) => {
     }
 
     const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "7d",
+      expiresIn: "1m",
     });
 
     user.token = await User.findByIdAndUpdate(
@@ -124,30 +124,40 @@ const login = async (req, res) => {
   }
 };
 
+
 const Profile_Token = async (req, res) => {
   try {
-    const token = await req.headers.authorization;
-    const user = req.user;
-    if (token) {
-      res.status(200).send({
-        success:true,
-        msg:"you have token",
-        results:user,
-      })
-    }else{
-      return res.status(404).send({
-        success:false,
-        msg:"you have not token plz login",
-      })
+    const token = req.headers.authorization && req.headers.authorization.split(' ')[1];// Extract token from Authorization header
+
+    if (!token) {
+      return res.status(401).send({
+        success: false,
+        msg: "No token provided",
+      });
     }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const currentTime = Math.floor(Date.now() / 1000); // Get current time in seconds
+
+    if (decoded.exp < currentTime) {
+      return res.status(401).send({
+        success: false,
+        msg: "Token has expired",
+      });
+    }
+
+    res.status(200).send({
+      success: true,
+      msg: "You have a valid token",
+      user: req.user,
+    });
 
   } catch (error) {
     console.log(error);
     return res.status(500).send({
       success:false,
-      msg:"error in profile-token",
-      error
-
+      msg:"something went wrong",
     })
   }
 };
