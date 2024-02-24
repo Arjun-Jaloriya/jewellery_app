@@ -127,7 +127,7 @@ const login = async (req, res) => {
 
 const Profile_Token = async (req, res) => {
   try {
-    const token = req.headers.authorization && req.headers.authorization.split(' ')[1];// Extract token from Authorization header
+    const token = req.headers.authorization // Extract token from Authorization header
 
     if (!token) {
       return res.status(401).send({
