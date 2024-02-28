@@ -13,8 +13,9 @@ const transactionroute = require("./Routes/transaction");
 const emiroutes = require("./Routes/EmiTransaction");
 const loanroutes = require("./Routes/Loan");
 const reportroute = require("./Routes/report");
-const { maturityEmi } = require("./Controllers/emi");
+const { maturityEmi,deleteemi } = require("./Controllers/emi");
 const { sendemail } = require("./Controllers/transaction");
+const { deleteLoan } = require("./Controllers/Loan");
 
 //middleware
 app.use(express.json());
@@ -32,6 +33,8 @@ cron.schedule("0 10 * * *", ()=>{
 });
 cron.schedule("0 0 * * *",()=>{
     maturityEmi()
+    deleteemi()
+    deleteLoan()
 })
 
 app.listen(port,()=>{

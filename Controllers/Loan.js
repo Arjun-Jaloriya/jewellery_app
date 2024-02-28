@@ -398,6 +398,42 @@ const getLoanById = async (req, res) => {
   }
 };
 
+const deleteLoan = async(req,res)=>{
+  try {
+    const today = new Date();
+    const LoanData = await Loan.find({
+      $or: [
+        { status: "Completed" },
+        { status: "closed with discount" }
+      ]
+    });
+   
+
+    if (LoanData.length > 0) {
+      const modifiedDates = LoanData.map((record) => {
+        const modifiedDate = new Date(record.lastUpdateDate);
+        modifiedDate.setDate(modifiedDate.getDate() + 15);
+        return modifiedDate;
+      });
+
+      const todayDateString = today.toDateString();
+      
+      // Find records to delete
+      const recordsToDelete = LoanData.filter((record, index) => {
+        return modifiedDates[index].toDateString() === todayDateString;
+      });
+
+      // Extract ids of records to delete
+      const idsToDelete = recordsToDelete.map(record => record._id);
+
+      // Delete records
+      const result = await Loan.deleteMany({ _id: { $in: idsToDelete } });
+
+    }
+  } catch (error) {
+    console.log(error);
+  }
+};
 module.exports = {
   addLoan,
   updateinterest,
@@ -406,4 +442,5 @@ module.exports = {
   discount,
   // sendemail,
   getLoanById,
+  deleteLoan
 };

@@ -292,7 +292,7 @@ const deleteemi = async (req, res) => {
     const withdrawRecords = await Emi.find({ status: "withdraw" }).select(
       "maturityDate"
     );
-    // console.log(withdrawRecords);
+
     if (withdrawRecords.length > 0) {
       const modifiedDates = withdrawRecords.map((record) => {
         const modifiedDate = new Date(record.maturityDate);
@@ -300,18 +300,26 @@ const deleteemi = async (req, res) => {
         return modifiedDate;
       });
 
-      let deletedCount = 0;
-      for (let i = 0; i < withdrawRecords.length; i++) {
-        if (modifiedDates[i].toDateString() === today.toDateString()) {
-          await Emi.deleteOne({ _id: withdrawRecords[i]._id });
-          deletedCount++;
-        }
-      }
+      const todayDateString = today.toDateString();
+      
+      // Find records to delete
+      const recordsToDelete = withdrawRecords.filter((record, index) => {
+        return modifiedDates[index].toDateString() === todayDateString;
+      });
+
+      // Extract ids of records to delete
+      const idsToDelete = recordsToDelete.map(record => record._id);
+
+      // Delete records
+      const result = await Emi.deleteMany({ _id: { $in: idsToDelete } });
+
+   
     }
   } catch (error) {
     console.log(error);
   }
 };
+
 
 module.exports = {
   add_emitransaction,
