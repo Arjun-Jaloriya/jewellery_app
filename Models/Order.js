@@ -11,6 +11,7 @@ const OrderSchema = new mongoose.Schema(
     address: {
       type: String,
     },
+    date:{type:Date},
     remark:{type:String},
     items: [
       {

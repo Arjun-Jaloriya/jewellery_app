@@ -8,6 +8,7 @@ const add_transaction = async (req, res) => {
       customerName,
       customerMobile,
       address,
+      date,
       remark,
       items,
       replacement,
@@ -33,6 +34,8 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "address is required" });
       case !items:
         return res.send({ error: "items is required" });
+        case !date:
+        return res.send({ error: "date is required" });
     }
 
     // Define remainingAmount and status based on isFullPayment
@@ -82,6 +85,7 @@ const add_transaction = async (req, res) => {
       customerName,
       customerMobile,
       address,
+      date,
       remark,
       items,
       isFullPayment,
