@@ -217,7 +217,7 @@ const Get_Allorders = async (req, res) => {
     })
       .skip((page - 1) * perpage)
       .limit(perpage)
-      .sort({ createdAt: -1 });
+      .sort({ date: -1 });
     res.status(200).send({
       success: true,
       msg: "search data fetched",
@@ -258,7 +258,7 @@ const pending_status = async (req, res) => {
     })
       .skip((page - 1) * perpage)
       .limit(perpage)
-      .sort({ createdAt: -1 });
+      .sort({ date: -1 });
 
     res.status(200).send({
       success: true,

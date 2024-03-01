@@ -10,7 +10,7 @@ const typeWiseReport = async (req, res) => {
     const { year } = req.query;
     const typeData = await Order.find({
       "items.type": req.query.type,
-      createdAt: {
+      date: {
         $gte: new Date(`${year}-01-01`),
         $lte: new Date(`${year + 1}-01-01`),
       },
@@ -61,19 +61,19 @@ const customReport = async (req, res) => {
 
     const count = await Order.find({
       $and: [
-        { createdAt: { $gte: startDateTime, $lte: endDateTime } },
+        { date: { $gte: startDateTime, $lte: endDateTime } },
         { customerName: { $regex: search, $options: "i" } },
       ],
     });
     const reportData = await Order.find({
       $and: [
-        { createdAt: { $gte: startDateTime, $lte: endDateTime } },
+        { date: { $gte: startDateTime, $lte: endDateTime } },
         { customerName: { $regex: search, $options: "i" } },
       ],
     })
       .skip((page - 1) * perpage)
       .limit(perpage)
-      .sort({ createdAt: -1 });
+      .sort({ date: -1 });
       
     if (reportData.length) {
       const totalSumAmount = reportData.map((data) => {
@@ -118,7 +118,7 @@ const exportexcel = async (req, res) => {
     endDateTime.setHours(23, 59, 59, 999);
 
     const reportData = await Order.find({
-      $and: [{ createdAt: { $gte: startDateTime, $lte: endDateTime } }],
+      $and: [{ date: { $gte: startDateTime, $lte: endDateTime } }],
     });
     if (reportData.length) {
       const workbook = new ExcelJS.Workbook();
