@@ -37,10 +37,24 @@ cron.schedule("0 10 * * *", ()=>{
     sendemail()
     
 });
+// cron.schedule('28 12 * * *', () => {
+//     console.log('Starting database backup...');
+//     backup({
+//         uri: process.env.DEMO_MONGO_URI,
+//         root: 'G:/backup' // Set the correct path to your backup folder
+//     })
+//     .then(() => {
+//         console.log('Database backup completed successfully.');
+//     })
+//     .catch(error => {
+//         console.error('Error during database backup:', error);
+//     });
+// });
 cron.schedule("0 0 * * *",()=>{
     maturityEmi()
     deleteemi()
     deleteLoan()
+    
   
     
 })
