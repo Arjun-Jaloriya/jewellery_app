@@ -34,8 +34,7 @@ const addLoan = async (req, res) => {
       //   return res.send({ error: "transactions is required" });
       case !items:
         return res.send({ error: "items is required" });
-      case !totalItemCost:
-        return res.send({ error: "totalItemCost is required" });
+   
       case !loanCost:
         return res.send({ error: "loanCost is required" });
       case !interestRate:
