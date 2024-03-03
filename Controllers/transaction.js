@@ -62,6 +62,7 @@ const add_transaction = async (req, res) => {
 
         remainingAmount =
           total_amount - (replacementTotalPriceSum + advance_payment);
+          
         transactions = [
           {
             amount: replacementTotalPriceSum + advance_payment,
@@ -70,12 +71,15 @@ const add_transaction = async (req, res) => {
         ];
       } else {
         remainingAmount = total_amount - advance_payment;
-        transactions = [
-          {
-            amount: advance_payment,
-            remark: remark,
-          },
-        ];
+        if(advance_payment > 0){
+          transactions = [
+            {
+              amount: advance_payment,
+              remark: remark,
+            },
+          ];
+        }
+        
       }
       status = "Pending";
     }

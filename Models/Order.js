@@ -20,7 +20,7 @@ const OrderSchema = new mongoose.Schema(
         quantity: { type: Number, required: true },
         price: { type: Number, required: true ,default:0},
         type: { type: String, required: true, default: "gold" },
-        item_no: { type: String, required: true },
+        item_no: { type: String, required: false },
         labour: { type: Number, required: true,default:0 },
         itemRate:{type:Number,required:true,default:0}
 
