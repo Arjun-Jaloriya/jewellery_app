@@ -17,7 +17,8 @@ emirouter.put("/withdraw/:id",issignin,withdraw);
 emirouter.post("/recent-withdraw",issignin,recent_withdraw);
 //
 emirouter.get("/maturity-emi",issignin,maturityEmi)
-
+//cancel emi
+emirouter.put("/cancel-emi/:id",issignin,cancelEmi)
 
 
 
