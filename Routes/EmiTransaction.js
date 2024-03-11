@@ -1,6 +1,6 @@
 const express = require("express");
 const { issignin } = require("../Middleware/authmiddleware");
-const { add_emitransaction,update_Emi,get_emitransaction,withdraw,recent_withdraw,maturityEmi,getEmiById,deleteemi } = require("../Controllers/emi");
+const { add_emitransaction,update_Emi,get_emitransaction,withdraw,recent_withdraw,maturityEmi,getEmiById,deleteemi,cancelEmi } = require("../Controllers/emi");
 const emirouter = express.Router();
 
 //add emi
