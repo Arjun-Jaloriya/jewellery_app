@@ -11,19 +11,19 @@ const OrderSchema = new mongoose.Schema(
     address: {
       type: String,
     },
-    date:{type:Date},
-    remark:{type:String},
+    date: { type: Date },
+    remark: { type: String },
     items: [
       {
         name: { type: String, required: true },
         weight: { type: Number, required: true },
         quantity: { type: Number, required: true },
-        price: { type: Number, required: true ,default:0},
+        price: { type: Number, required: true, default: 0 },
         type: { type: String, required: true, default: "gold" },
-        item_no: { type: String, required: true },
-        labour: { type: Number, required: true,default:0 },
-        itemRate:{type:Number,required:true,default:0}
-
+        rate: { type: Number, required: true, default: 0 },
+        item_no: { type: String, required: false },
+        labour: { type: Number, required: true, default: 0 },
+        itemRate: { type: Number, required: true, default: 0 },
       },
     ],
     replacement: [
@@ -32,7 +32,7 @@ const OrderSchema = new mongoose.Schema(
         description: { type: String },
         weight: { type: Number },
         quantity: { type: Number },
-        total_Price: { type: Number ,default:0},
+        total_Price: { type: Number, default: 0 },
         type: { type: String, default: "gold" },
       },
     ],
@@ -40,14 +40,14 @@ const OrderSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    taxRate: { type: Number,default:0 },
-    subTotal: { type: Number ,default:0},
-    taxAmount: { type: Number ,default:0},
-    discount_amount: { type: Number,default:0 },
+    taxRate: { type: Number, default: 0 },
+    subTotal: { type: Number, default: 0 },
+    taxAmount: { type: Number, default: 0 },
+    discount_amount: { type: Number, default: 0 },
     total_amount: {
       type: Number,
       required: true,
-      default:0
+      default: 0,
     },
     advance_payment: {
       type: Number,
@@ -77,8 +77,8 @@ const OrderSchema = new mongoose.Schema(
       // enum:["Payment_Completed","Payment_Pending"],
       // default:"Payment_Completed"
     },
-
-   
+    dispatch: { type: String, default: "No" },
+    orderNo: { type: String,unique:true },
   },
   { timestamps: true }
 );
