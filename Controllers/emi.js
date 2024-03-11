@@ -215,8 +215,7 @@ const maturityEmi = async (req, res) => {
     // Find all pending records
     const getPendingData = await Emi.find({ status: "pending" });
 
-    if(getPendingData.length > 0){
-      
+    if (getPendingData.length > 0) {
     }
     // Iterate through each pending record
     for (const data of getPendingData) {
@@ -301,26 +300,46 @@ const deleteemi = async (req, res) => {
       });
 
       const todayDateString = today.toDateString();
-      
+
       // Find records to delete
       const recordsToDelete = withdrawRecords.filter((record, index) => {
         return modifiedDates[index].toDateString() === todayDateString;
       });
 
       // Extract ids of records to delete
-      const idsToDelete = recordsToDelete.map(record => record._id);
+      const idsToDelete = recordsToDelete.map((record) => record._id);
 
       // Delete records
       const result = await Emi.deleteMany({ _id: { $in: idsToDelete } });
-
-   
     }
   } catch (error) {
     console.log(error);
   }
 };
 
-
+const cancelEmi = async (req, res) => {
+  try {
+    const updateEmi = await Emi.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "Cancelled",
+      },
+      { new: true, useFindAndModify: false }
+    );
+    res.status(200).send({
+      success:true,
+      msg:"cancelled emi successfully",
+      results:updateEmi
+    })
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in cancel-emi",
+      error,
+    });
+  }
+};
 module.exports = {
   add_emitransaction,
   update_Emi,
@@ -330,4 +349,5 @@ module.exports = {
   maturityEmi,
   getEmiById,
   deleteemi,
+  cancelEmi,
 };

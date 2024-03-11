@@ -1,6 +1,6 @@
 const express = require("express");
 const { issignin } = require("../Middleware/authmiddleware");
-const { add_emitransaction,update_Emi,get_emitransaction,withdraw,recent_withdraw,maturityEmi,getEmiById,deleteemi } = require("../Controllers/emi");
+const { add_emitransaction,update_Emi,get_emitransaction,withdraw,recent_withdraw,maturityEmi,getEmiById,cancelEmi } = require("../Controllers/emi");
 const emirouter = express.Router();
 
 //add emi
@@ -17,6 +17,8 @@ emirouter.put("/withdraw/:id",issignin,withdraw);
 emirouter.post("/recent-withdraw",issignin,recent_withdraw);
 //
 emirouter.get("/maturity-emi",issignin,maturityEmi)
+//cancel emi
+emirouter.put("/cancel-emi/:id",issignin,cancelEmi)
 
 
 
