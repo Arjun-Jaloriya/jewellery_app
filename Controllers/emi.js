@@ -319,7 +319,29 @@ const deleteemi = async (req, res) => {
     console.log(error);
   }
 };
-
+const cancelEmi = async (req, res) => {
+  try {
+    const updateEmi = await Emi.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "Cancelled",
+      },
+      { new: true, useFindAndModify: false }
+    );
+    res.status(200).send({
+      success:true,
+      msg:"cancelled emi successfully",
+      results:updateEmi
+    })
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success: false,
+      msg: "error in cancel-emi",
+      error,
+    });
+  }
+};
 
 module.exports = {
   add_emitransaction,
@@ -330,4 +352,5 @@ module.exports = {
   maturityEmi,
   getEmiById,
   deleteemi,
+  cancelEmi
 };
