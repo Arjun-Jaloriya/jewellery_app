@@ -23,6 +23,7 @@ const add_transaction = async (req, res) => {
       transactions, // Remove transactions from here
       paymentType,
       status,
+      dispatch,
     } = req.body;
 
     switch (true) {
@@ -34,10 +35,30 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "address is required" });
       case !items:
         return res.send({ error: "items is required" });
-        case !date:
+      case !date:
         return res.send({ error: "date is required" });
+      case !dispatch:
+        return res.send({ error: "dispatch is required" });
     }
 
+    const generateOrderNumber = async () => {
+      // Find the last order in the database
+      const lastOrder = await Order.findOne().sort({ createdAt: -1 });
+
+      // Extract the order number and increment it
+      let nextOrderNumber;
+      if (lastOrder && lastOrder.orderNo) {
+        const lastOrderNumber = parseInt(lastOrder.orderNo.replace('ORD', ''), 10);
+        const nextOrderNumberInt = lastOrderNumber + 1;
+        nextOrderNumber = 'ORD' + nextOrderNumberInt.toString().padStart(2, '0');
+      } else {
+        // If no orders exist yet, start with ORD01
+        nextOrderNumber = 'ORD01';
+      }
+
+      return nextOrderNumber;
+    };
+    const orderNo = await generateOrderNumber();
     // Define remainingAmount and status based on isFullPayment
     let remainingAmount;
     if (isFullPayment == true) {
@@ -45,10 +66,12 @@ const add_transaction = async (req, res) => {
         status = "price_not_fixed";
         remainingAmount = 0;
         transactions = [];
+        dispatch = "No";
         replacement = replacement; // Empty transactions array
       } else {
         status = "Completed";
         remainingAmount = 0;
+        dispatch = "Yes";
         replacement = replacement;
         transactions = [];
       }
@@ -60,8 +83,17 @@ const add_transaction = async (req, res) => {
           0
         );
 
-        remainingAmount =
-          total_amount - (replacementTotalPriceSum + advance_payment);
+        if (total_amount === 0) {
+          status = "price_not_fixed";
+          remainingAmount = Math.max(
+            0,
+            -(replacementTotalPriceSum + advance_payment)
+          );
+        } else {
+          remainingAmount =
+            total_amount - (replacementTotalPriceSum + advance_payment);
+        }
+
         transactions = [
           {
             amount: replacementTotalPriceSum + advance_payment,
@@ -69,15 +101,24 @@ const add_transaction = async (req, res) => {
           },
         ];
       } else {
+        if (advance_payment > 0) {
+          if (total_amount === 0) {
+            remainingAmount = max(0 - advance_payment);
+          }
+          transactions = [
+            {
+              amount: advance_payment,
+              remark: remark,
+            },
+          ];
+        }
         remainingAmount = total_amount - advance_payment;
-        transactions = [
-          {
-            amount: advance_payment,
-            remark: remark,
-          },
-        ];
       }
-      status = "Pending";
+      if (total_amount === 0) {
+        status = "price_not_fixed";
+      } else {
+        status = "Pending";
+      }
     }
 
     // Create Order document
@@ -108,6 +149,7 @@ const add_transaction = async (req, res) => {
       paymentType,
       transactions,
       status,
+      orderNo:orderNo
     }).save();
 
     res.status(200).send({
@@ -204,16 +246,19 @@ const Get_Allorders = async (req, res) => {
     const search = req.query.search ? req.query.search : "";
     const perpage = req.query.perpage ? req.query.perpage : 5;
     const page = req.query.page ? req.query.page : 1;
+    const dispatch = req.query.dispatch ? req.query.dispatch : "No";
     const count = await Order.find({
-      $or: [
+      $and: [
         {
           customerName: { $regex: search, $options: "i" },
         },
+        // { dispatch: dispatch }
+        
       ],
     });
 
     const getOrders = await Order.find({
-      $or: [{ customerName: { $regex: search, $options: "i" } }],
+      $and: [{ customerName: { $regex: search, $options: "i" } },{ dispatch: dispatch },]
     })
       .skip((page - 1) * perpage)
       .limit(perpage)
@@ -466,6 +511,7 @@ const edittransaction = async (req, res) => {
       address,
       remark,
       items,
+      dispatch,
       replacement,
       isFullPayment,
       taxRate,
@@ -488,6 +534,8 @@ const edittransaction = async (req, res) => {
         return res.send({ error: "address is required" });
       case !items:
         return res.send({ error: "items is required" });
+      case !dispatch:
+        return res.send({ error: "dispatch is required" });
     }
     let remainingAmount;
     if (total_amount > 0) {
@@ -500,6 +548,7 @@ const edittransaction = async (req, res) => {
               customerMobile,
               address,
               remark,
+              dispatch,
               items,
               replacement,
               isFullPayment,
@@ -538,7 +587,6 @@ const edittransaction = async (req, res) => {
               remark: remark,
             },
           ];
-          
         } else {
           remainingAmount = total_amount - advance_payment;
           transactions = [
@@ -548,7 +596,6 @@ const edittransaction = async (req, res) => {
               remark: remark,
             },
           ];
-         
         }
         const updateOrder = await Order.findByIdAndUpdate(
           req.params.id,
@@ -558,6 +605,7 @@ const edittransaction = async (req, res) => {
               customerMobile,
               address,
               remark,
+              dispatch,
               items,
               replacement,
               isFullPayment,
@@ -622,6 +670,42 @@ const edittransaction = async (req, res) => {
     });
   }
 };
+const deleteTransaction = async(req,res)=>{
+  try {
+    const orderId = req.params.Oid;
+    const transactionId = req.params.id;
+    const order = await Order.findById(orderId);
+    const deletedTransaction = order.transactions.find(transaction => transaction._id == transactionId);
+
+    if (!deletedTransaction) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    // Update remaining amount by adding the amount of the deleted transaction
+    order.remainingAmount += deletedTransaction.amount;
+
+    // Filter out the transaction to be deleted
+    order.transactions = order.transactions.filter(transaction => transaction._id != transactionId);
+
+    // Save the updated order
+    const updatedOrder = await order.save();
+
+    res.status(200).send({
+      success: true,
+      msg: "deleted successfully",
+      results: updatedOrder,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      msg: "error in deleteTransaction",
+      error: error,
+    });
+  }
+}
 module.exports = {
   add_transaction,
   get_transaction,
@@ -632,4 +716,5 @@ module.exports = {
   discount,
   sendemail,
   edittransaction,
+  deleteTransaction
 };
