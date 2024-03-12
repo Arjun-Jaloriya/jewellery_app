@@ -14,88 +14,93 @@ const getDashboard = async (req, res) => {
     const endDateTime = new Date(endDate);
     endDateTime.setHours(23, 59, 59, 999);
     // console.log(startDateTime, endDateTime);
+    let orderCard = {};
     const orderCount = await Order.find({
       $and: [{ date: { $gte: startDateTime, $lte: endDateTime } }],
     });
-
-    // if (orderCount.length > 0) {
-      const OrderPendingData = await Order.find({
+    if (orderCount.length > 0) {
+      const orderPendingData = await Order.find({
         $and: [
           { date: { $gte: startDateTime, $lte: endDateTime } },
           { status: "Pending" },
         ],
       });
-      const countData = orderCount.map((data) => {
-        return data.total_amount;
+      const countData = orderCount.map((data) => data.total_amount);
+      const totalRevenue = countData.reduce((sum, all) => sum + all, 0);
+      const orderPercentage =
+        orderCount.length > 0 ? (orderPendingData.length / orderCount.length) * 100 : 0;
+
+      orderCard = {
+        count: orderCount.length,
+        pending: orderPendingData.length,
+        revenue: totalRevenue,
+        percentage: orderPercentage,
+      };
+      const monthlyOrderCount = Array(12).fill(0);
+      const monthlyRevenue = Array(12).fill(0);
+
+      orderCount.forEach(order => {
+        const month = order.date.getMonth();
+        monthlyOrderCount[month]++;
+        monthlyRevenue[month] += order.total_amount;
       });
-      const totalRevenue = countData.reduce((sum, all) => {
-        return sum + all;
-      });
-      
-    // }
+
+      // Add monthly data to the response object
+      orderCard.monthlyOrderCount = monthlyOrderCount;
+      orderCard.monthlyRevenue = monthlyRevenue;
+    }
+    
 
     const emiCount = await Emi.find({
-      $and: [{ date: { $gte: startDateTime, $lte: endDateTime } }],
+      $and: [{ createdAt: { $gte: startDateTime, $lte: endDateTime } }],
     });
-    // if(emiCount.length > 0){
+
+    let emiCard = {};
+    if (emiCount.length > 0) {
       const pendingEmi = await Emi.find({
         $and: [
-          { date: { $gte: startDateTime, $lte: endDateTime } },
+          { createdAt: { $gte: startDateTime, $lte: endDateTime } },
+          { status: "pending" },
+        ],
+      });
+      const emiData = pendingEmi.map((data) => data.total_creditamount);
+      const totalEmiRevenue = emiData.reduce((sum, all) => sum + all, 0);
+      const emiPercentage = emiCount.length > 0 ? (pendingEmi.length / emiCount.length) * 100 : 0;
+
+      emiCard = {
+        count: emiCount.length,
+        pending: pendingEmi.length,
+        revenue: totalEmiRevenue,
+        percentage: emiPercentage,
+      };
+    }
+
+    const loanCount = await Loan.find({
+      $and: [{ createdAt: { $gte: startDateTime, $lte: endDateTime } }],
+    });
+
+    let loanCard = {};
+    if (loanCount.length > 0) {
+      const pendingLoan = await Loan.find({
+        $and: [
+          { createdAt: { $gte: startDateTime, $lte: endDateTime } },
           { status: "Pending" },
         ],
       });
-      const emiData = pendingEmi.map((data)=>{
-        return data.total_creditamount;
-      })
-      const totalEmiRevenue = emiData.reduce((sum,all)=>{
-        return sum+all;
-      })
+      const loanData = loanCount.map((data) => data.loanCost);
+      const totalLoanRevenue = loanData.reduce((sum, all) => sum + all, 0);
+      const loanPercentage = loanCount.length > 0 ? (pendingLoan.length / loanCount.length) * 100 : 0;
 
-    // }
-    const loanCount = await Loan.find({
-      $and:[{date:{$gte:startDateTime,$lte:endDateTime}}]
-    })
+      loanCard = {
+        count: loanCount.length,
+        pending: pendingLoan.length,
+        revenue: totalLoanRevenue,
+        percentage: loanPercentage,
+      };
+    }
 
-    const pendingLoan = await Loan.find({
-      $and:[{date:{$gte:startDateTime,$lte:endDateTime}},[{status:"Pending"}]]
-    })
-
-    const loanData = loanCount.map((data)=>{
-      return data.loanCost;
-    })
-
-    const totalLoanRevenue = loanData.reduce((sum,all)=>{
-      return sum+all;
-    })
-    res.status(200).send({
-      success: true,
-      order: {
-        count: orderCount.length,
-        pending: OrderPendingData.length,
-        revenue: totalRevenue,
-      },
-     
-      loan:{
-        count:loanCount,length,
-        pending:pendingLoan.length,
-        revenue:totalLoanRevenue
-      },
-      emi:{
-        count:emiCount,length,
-        pending:pendingEmi.length,
-        revenue:totalEmiRevenue
-      },
-      orderChart:[
-        {
-          name:'Total Orders',
-          data:[
-            
-          ]
-        }
-      ]
-
-      
-    });
+    res.status(200).send({ orderCard, emiCard, loanCard });
+    
   } catch (error) {
     console.log(error);
     return res
