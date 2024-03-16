@@ -48,12 +48,16 @@ const add_transaction = async (req, res) => {
       // Extract the order number and increment it
       let nextOrderNumber;
       if (lastOrder && lastOrder.orderNo) {
-        const lastOrderNumber = parseInt(lastOrder.orderNo.replace('ORD', ''), 10);
+        const lastOrderNumber = parseInt(
+          lastOrder.orderNo.replace("ORD", ""),
+          10
+        );
         const nextOrderNumberInt = lastOrderNumber + 1;
-        nextOrderNumber = 'ORD' + nextOrderNumberInt.toString().padStart(2, '0');
+        nextOrderNumber =
+          "ORD" + nextOrderNumberInt.toString().padStart(2, "0");
       } else {
         // If no orders exist yet, start with ORD01
-        nextOrderNumber = 'ORD01';
+        nextOrderNumber = "ORD01";
       }
 
       return nextOrderNumber;
@@ -149,7 +153,7 @@ const add_transaction = async (req, res) => {
       paymentType,
       transactions,
       status,
-      orderNo:orderNo
+      orderNo: orderNo,
     }).save();
 
     res.status(200).send({
@@ -257,12 +261,15 @@ const Get_Allorders = async (req, res) => {
     });
 
     const getOrders = await Order.find({
-      $and: [{ customerName: { $regex: search, $options: "i" } },{dispatch:{$regex:dispatch,$options:"i"}}]
+      $and: [
+        { customerName: { $regex: search, $options: "i" } },
+        dispatch ? { dispatch: { $regex: dispatch, $options: "i" } } : {}
+      ],
     })
       .skip((page - 1) * perpage)
       .limit(perpage)
       .sort({ date: -1 });
-      console.log(getOrders);
+    console.log(getOrders);
     res.status(200).send({
       success: true,
       msg: "search data fetched",
@@ -670,12 +677,14 @@ const edittransaction = async (req, res) => {
     });
   }
 };
-const deleteTransaction = async(req,res)=>{
+const deleteTransaction = async (req, res) => {
   try {
     const orderId = req.params.Oid;
     const transactionId = req.params.id;
     const order = await Order.findById(orderId);
-    const deletedTransaction = order.transactions.find(transaction => transaction._id == transactionId);
+    const deletedTransaction = order.transactions.find(
+      (transaction) => transaction._id == transactionId
+    );
 
     if (!deletedTransaction) {
       return res.status(404).json({
@@ -688,7 +697,9 @@ const deleteTransaction = async(req,res)=>{
     order.remainingAmount += deletedTransaction.amount;
 
     // Filter out the transaction to be deleted
-    order.transactions = order.transactions.filter(transaction => transaction._id != transactionId);
+    order.transactions = order.transactions.filter(
+      (transaction) => transaction._id != transactionId
+    );
 
     // Save the updated order
     const updatedOrder = await order.save();
@@ -705,7 +716,7 @@ const deleteTransaction = async(req,res)=>{
       error: error,
     });
   }
-}
+};
 module.exports = {
   add_transaction,
   get_transaction,
@@ -716,5 +727,5 @@ module.exports = {
   discount,
   sendemail,
   edittransaction,
-  deleteTransaction
+  deleteTransaction,
 };
