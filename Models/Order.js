@@ -77,7 +77,7 @@ const OrderSchema = new mongoose.Schema(
       // enum:["Payment_Completed","Payment_Pending"],
       // default:"Payment_Completed"
     },
-    dispatch: { type: String, default: "No" },
+    dispatch: { type: Boolean, default: false },
     orderNo: { type: String,unique:true },
   },
   { timestamps: true }

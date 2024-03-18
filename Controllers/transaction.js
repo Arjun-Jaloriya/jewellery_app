@@ -250,7 +250,7 @@ const Get_Allorders = async (req, res) => {
     const search = req.query.search ? req.query.search : "";
     const perpage = req.query.perpage ? req.query.perpage : 5;
     const page = req.query.page ? req.query.page : 1;
-    const dispatch = req.query.dispatch ? req.query.dispatch : "";
+    const dispatch = req.query.dispatch ? req.query.dispatch : false;
     const count = await Order.find({
       $or: [
         {
@@ -541,8 +541,7 @@ const edittransaction = async (req, res) => {
         return res.send({ error: "address is required" });
       case !items:
         return res.send({ error: "items is required" });
-      case !dispatch:
-        return res.send({ error: "dispatch is required" });
+     
     }
     let remainingAmount;
     if (total_amount > 0) {
