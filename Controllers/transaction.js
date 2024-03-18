@@ -252,18 +252,18 @@ const Get_Allorders = async (req, res) => {
     const page = req.query.page ? req.query.page : 1;
     const dispatch = req.query.dispatch ? req.query.dispatch : false;
     const count = await Order.find({
-      $or: [
+      $and: [
         {
           customerName: { $regex: search, $options: "i" },
         },
-        // { dispatch: dispatch }
+        { dispatch: dispatch }
       ],
     });
 
     const getOrders = await Order.find({
       $and: [
         { customerName: { $regex: search, $options: "i" } },
-        dispatch ? { dispatch: { $regex: dispatch, $options: "i" } } : {}
+        { dispatch:dispatch }
       ],
     })
       .skip((page - 1) * perpage)
