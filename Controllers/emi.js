@@ -352,5 +352,6 @@ module.exports = {
   maturityEmi,
   getEmiById,
   deleteemi,
-  cancelEmi
+  cancelEmi,
+  deleteEmiTransaction
 };
