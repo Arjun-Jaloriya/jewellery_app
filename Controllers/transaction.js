@@ -37,8 +37,7 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "items is required" });
       case !date:
         return res.send({ error: "date is required" });
-      case !dispatch:
-        return res.send({ error: "dispatch is required" });
+      
     }
 
     const generateOrderNumber = async () => {
@@ -66,12 +65,12 @@ const add_transaction = async (req, res) => {
         status = "price_not_fixed";
         remainingAmount = 0;
         transactions = [];
-        dispatch = "No";
+        
         replacement = replacement; // Empty transactions array
       } else {
         status = "Completed";
         remainingAmount = 0;
-        dispatch = "Yes";
+       
         replacement = replacement;
         transactions = [];
       }
@@ -130,6 +129,7 @@ const add_transaction = async (req, res) => {
       remark,
       items,
       isFullPayment,
+      dispatch,
       total_amount,
       taxRate,
       taxAmount,
@@ -252,7 +252,7 @@ const Get_Allorders = async (req, res) => {
         {
           customerName: { $regex: search, $options: "i" },
         },
-        // { dispatch: dispatch }
+        { dispatch: dispatch }
         
       ],
     });
@@ -534,8 +534,7 @@ const edittransaction = async (req, res) => {
         return res.send({ error: "address is required" });
       case !items:
         return res.send({ error: "items is required" });
-      case !dispatch:
-        return res.send({ error: "dispatch is required" });
+     
     }
     let remainingAmount;
     if (total_amount > 0) {
