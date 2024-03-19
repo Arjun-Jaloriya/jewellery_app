@@ -25,7 +25,7 @@ const add_transaction = async (req, res) => {
       status,
       dispatch,
     } = req.body;
-console.log(req.body);
+
     switch (true) {
       case !customerName:
         return res.send({ error: "customerName is required" });
@@ -678,8 +678,8 @@ const edittransaction = async (req, res) => {
 };
 const deleteTransaction = async (req, res) => {
   try {
-    const orderId = req.params.Oid;
-    const transactionId = req.params.id;
+    const orderId = req.params.orderId;
+    const transactionId = req.params.transactionId;
     const order = await Order.findById(orderId);
     const deletedTransaction = order.transactions.find(
       (transaction) => transaction._id == transactionId

@@ -16,7 +16,7 @@ transactionrouter.put("/discount/:id",issignin,discount);
 //editTransaction
 transactionrouter.put("/editTransaction/:id",issignin,edittransaction);
 //delete-transaction
-transactionrouter.delete("/deleteTransaction/:Oid/:id",issignin,deleteTransaction);
+transactionrouter.delete("/deleteTransaction/:orderId/:transactionId",issignin,deleteTransaction);
 
 
 
