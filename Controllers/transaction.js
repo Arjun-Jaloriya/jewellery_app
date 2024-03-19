@@ -246,23 +246,26 @@ const Get_Allorders = async (req, res) => {
     const search = req.query.search ? req.query.search : "";
     const perpage = req.query.perpage ? req.query.perpage : 5;
     const page = req.query.page ? req.query.page : 1;
-    const dispatch = req.query.dispatch ? req.query.dispatch : "No";
+    const dispatch = req.query.dispatch ? req.query.dispatch : false;
     const count = await Order.find({
       $and: [
         {
           customerName: { $regex: search, $options: "i" },
         },
         { dispatch: dispatch }
-        
       ],
     });
 
     const getOrders = await Order.find({
-      $and: [{ customerName: { $regex: search, $options: "i" } },{ dispatch: dispatch },]
+      $and: [
+        { customerName: { $regex: search, $options: "i" } },
+        { dispatch:dispatch }
+      ],
     })
       .skip((page - 1) * perpage)
       .limit(perpage)
       .sort({ date: -1 });
+   
     res.status(200).send({
       success: true,
       msg: "search data fetched",
