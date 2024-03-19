@@ -670,10 +670,10 @@ const edittransaction = async (req, res) => {
     });
   }
 };
-const deleteTransaction = async(req,res)=>{
+const deleteWrongTransaction = async(req,res)=>{
   try {
-    const orderId = req.params.Oid;
-    const transactionId = req.params.id;
+    const orderId = req.params.orderId;
+    const transactionId = req.params.transactionId;
     const order = await Order.findById(orderId);
     const deletedTransaction = order.transactions.find(transaction => transaction._id == transactionId);
 
@@ -716,5 +716,5 @@ module.exports = {
   discount,
   sendemail,
   edittransaction,
-  deleteTransaction
+  deleteWrongTransaction
 };
