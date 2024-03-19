@@ -25,7 +25,7 @@ const add_transaction = async (req, res) => {
       status,
       dispatch,
     } = req.body;
-
+console.log(req.body);
     switch (true) {
       case !customerName:
         return res.send({ error: "customerName is required" });
