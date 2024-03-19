@@ -342,7 +342,47 @@ const cancelEmi = async (req, res) => {
     });
   }
 };
+const deleteEmiTransaction = async(req,res)=>{
+  try {
+    const emiId = req.params.emiId;
+    const transactionId = req.params.transactionId;
+    const emi = await Emi.findById(emiId);
+    const deletedTransaction = emi.transactions.find(
+      (transaction) => transaction._id == transactionId
+    );
 
+    if (!deletedTransaction) {
+      return res.status(404).json({
+        success: false,
+        message: "Transaction not found",
+      });
+    }
+
+    // Update remaining amount by adding the amount of the deleted transaction
+    emi.total_creditamount -= deletedTransaction.amount;
+
+    // Filter out the transaction to be deleted
+    emi.transactions = emi.transactions.filter(
+      (transaction) => transaction._id != transactionId
+    );
+
+    // Save the updated order
+    const updatedEmi = await emi.save();
+
+    res.status(200).send({
+      success: true,
+      msg: "deleted emiTransaction successfully",
+      results: updatedEmi,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      msg: "error in delete-emi-Transaction",
+      error: error,
+    });
+  }
+ 
+}
 module.exports = {
   add_emitransaction,
   update_Emi,
