@@ -16,7 +16,7 @@ const OrderSchema = new mongoose.Schema(
     items: [
       {
         name: { type: String, required: true },
-        weight: { type: Number, required: true },
+        weight: { type: String, required: true },
         quantity: { type: Number, required: true },
         price: { type: Number, required: true, default: 0 },
         type: { type: String, required: true, default: "gold" },
@@ -30,8 +30,8 @@ const OrderSchema = new mongoose.Schema(
       {
         name: { type: String },
         description: { type: String },
-        weight: { type: Number },
-        quantity: { type: Number },
+        weight: { type: String },
+        quantity: { type: String },
         total_Price: { type: Number, default: 0 },
         type: { type: String, default: "gold" },
       },
@@ -79,6 +79,8 @@ const OrderSchema = new mongoose.Schema(
     },
     dispatch: { type: Boolean, default: false },
     orderNo: { type: String,unique:true },
+    dueDate:{type:Date},
+    filterType:{type:String}
   },
   { timestamps: true }
 );

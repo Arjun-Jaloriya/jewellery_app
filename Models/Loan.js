@@ -21,7 +21,7 @@ const LoanSchema = new mongoose.Schema(
         descripion: { type: String },
         type: { type: String, default: "gold", required: true },
         quantity: { type: Number ,required: true},
-        weight: { type: Number, required: true },
+        weight: { type: String, required: true },
         itemCost: { type: Number, required: true },
       },
     ],

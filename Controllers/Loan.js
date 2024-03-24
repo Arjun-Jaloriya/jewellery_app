@@ -433,6 +433,28 @@ const deleteLoan = async(req,res)=>{
     console.log(error);
   }
 };
+const cancelLoan = async(req,res)=>{
+  try {
+    const UpadateLoan = await Loan.findByIdAndUpdate(req.params.id,{
+      status:"Cancelled"
+    },{ new: true, useFindAndModify: false }
+    )
+    res.status(200).send({
+      success:true,
+      msg:"cancelled loan successfully",
+      results:UpadateLoan
+    })
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      success:false,
+      msg:"error in cancel-Loan",
+      error
+
+    })
+  }
+}
 module.exports = {
   addLoan,
   updateinterest,
@@ -441,5 +463,6 @@ module.exports = {
   discount,
   // sendemail,
   getLoanById,
-  deleteLoan
+  deleteLoan,
+  cancelLoan
 };

@@ -37,7 +37,6 @@ const add_transaction = async (req, res) => {
         return res.send({ error: "items is required" });
       case !date:
         return res.send({ error: "date is required" });
-      
     }
 
     const generateOrderNumber = async () => {
@@ -69,12 +68,12 @@ const add_transaction = async (req, res) => {
         status = "price_not_fixed";
         remainingAmount = 0;
         transactions = [];
-        
+
         replacement = replacement; // Empty transactions array
       } else {
         status = "Completed";
         remainingAmount = 0;
-       
+
         replacement = replacement;
         transactions = [];
       }
@@ -88,40 +87,55 @@ const add_transaction = async (req, res) => {
 
         if (total_amount === 0) {
           status = "price_not_fixed";
-          remainingAmount = Math.max(
-            0,
-            -(replacementTotalPriceSum + advance_payment)
-          );
+          remainingAmount = 0;
         } else {
           remainingAmount =
             total_amount - (replacementTotalPriceSum + advance_payment);
-        }
-
-        transactions = [
-          {
-            amount: replacementTotalPriceSum + advance_payment,
-            remark: remark,
-          },
-        ];
-      } else {
-        if (advance_payment > 0) {
-          if (total_amount === 0) {
-            remainingAmount = max(0 - advance_payment);
-          }
           transactions = [
             {
-              amount: advance_payment,
+              amount: replacementTotalPriceSum + advance_payment,
               remark: remark,
             },
           ];
         }
-        remainingAmount = total_amount - advance_payment;
+      } else {
+        if (advance_payment > 0) {
+          if (total_amount === 0) {
+            remainingAmount = 0;
+          } else {
+            transactions = [
+              {
+                amount: advance_payment,
+                remark: remark,
+              },
+            ];
+            remainingAmount = total_amount - advance_payment;
+          }
+        }
       }
       if (total_amount === 0) {
         status = "price_not_fixed";
       } else {
         status = "Pending";
       }
+    }
+
+    let filterType = "";
+
+    if (items && items.length > 0) {
+      // Extract all unique types from the items array
+      const allTypes = items.reduce((types, item) => {
+        if (item.type) {
+          types.add(item.type);
+        }
+        return types;
+      }, new Set());
+
+      // Convert set of types to comma-separated string
+      filterType = Array.from(allTypes).join(", ");
+    } else {
+      // If items array is empty or not provided, set filterType to "other"
+      filterType = "other";
     }
 
     // Create Order document
@@ -140,20 +154,14 @@ const add_transaction = async (req, res) => {
       subTotal,
       discount_amount,
       replacement,
-      advance_payment: replacement
-        ? replacement.reduce((sum, repl) => sum + (repl.total_Price || 0), 0) +
-          advance_payment
-          ? advance_payment
-          : ""
-        : advance_payment
-        ? advance_payment
-        : "",
+      advance_payment: advance_payment ? advance_payment : "",
       remainingAmount,
       dueDate,
       paymentType,
       transactions,
       status,
       orderNo: orderNo,
+      filterType: filterType,
     }).save();
 
     res.status(200).send({
@@ -191,8 +199,23 @@ const get_transaction = async (req, res) => {
 const update_transaction = async (req, res) => {
   try {
     const { transactions } = req.body;
-    // console.log(transactions);
+
     const lastOrder = await Order.findById(req.params.id);
+
+    if (lastOrder.status == "price_not_fixed") {
+      const updatedata = await Order.findByIdAndUpdate(
+        req.params.id,
+        {
+          $push: { transactions: transactions },
+        },
+        { new: true, useFindAndModify: false }
+      );
+      return res.status(200).send({
+        success: true,
+        msg: "successfully updated transaction",
+        results: updatedata,
+      });
+    }
 
     if (transactions[0].amount <= lastOrder.remainingAmount) {
       const updatedRemainingAmount =
@@ -251,31 +274,52 @@ const Get_Allorders = async (req, res) => {
     const perpage = req.query.perpage ? req.query.perpage : 5;
     const page = req.query.page ? req.query.page : 1;
     const dispatch = req.query.dispatch ? req.query.dispatch : false;
+    const filterType = req.query.filterType ? req.query.filterType !== "all" ? req.query.filterType : undefined :undefined;
     const count = await Order.find({
       $and: [
         {
           customerName: { $regex: search, $options: "i" },
         },
-        { dispatch: dispatch }
+        { dispatch: dispatch },
       ],
     });
 
-    const getOrders = await Order.find({
-      $and: [
-        { customerName: { $regex: search, $options: "i" } },
-        { dispatch:dispatch }
-      ],
-    })
-      .skip((page - 1) * perpage)
-      .limit(perpage)
-      .sort({ date: -1 });
-   
-    res.status(200).send({
-      success: true,
-      msg: "search data fetched",
-      count: count.length,
-      results: getOrders,
-    });
+    if (filterType == undefined) {
+      const getOrders = await Order.find({
+        $and: [
+          { customerName: { $regex: search, $options: "i" } },
+          { dispatch: dispatch },
+        ],
+      })
+        .skip((page - 1) * perpage)
+        .limit(perpage)
+        .sort({ date: -1 });
+      res.status(200).send({
+        success: true,
+        msg: "search data fetched",
+        count: count.length,
+        results: getOrders,
+      });
+    } else {
+      const getOrders = await Order.find({
+        $and: [
+          { customerName: { $regex: search, $options: "i" } },
+          { dispatch: dispatch },
+          filterType
+            ? { filterType: { $regex: filterType, $options: "i" } }
+            : {},
+        ],
+      })
+        .skip((page - 1) * perpage)
+        .limit(perpage)
+        .sort({ date: -1 });
+      res.status(200).send({
+        success: true,
+        msg: "search data fetched",
+        count: getOrders.length,
+        results: getOrders,
+      });
+    }
   } catch (error) {
     console.log(error);
     return res.status(500).send({
@@ -541,133 +585,104 @@ const edittransaction = async (req, res) => {
         return res.send({ error: "address is required" });
       case !items:
         return res.send({ error: "items is required" });
-     
     }
+    const lastOrder = await Order.findById(req.params.id);
     let remainingAmount;
+    let totalTransactionsAmount = 0,
+      replacementTotalPriceSum = 0,
+      totalCalculateRemaining = 0,
+      transactionArray = lastOrder.transactions || [];
+      
+
+    advance_payment =
+      advance_payment && advance_payment > 0 ? advance_payment : 0;
     if (total_amount > 0) {
       if (isFullPayment == true) {
-        const updateOrder = await Order.findByIdAndUpdate(
-          req.params.id,
-          {
-            $set: {
-              customerName,
-              customerMobile,
-              address,
-              remark,
-              dispatch,
-              items,
-              replacement,
-              isFullPayment,
-              remainingAmount: 0,
-              taxRate,
-              taxAmount,
-              subTotal,
-              total_amount,
-              advance_payment,
-              dueDate,
-              discount_amount,
-              transactions,
-              paymentType,
-              status: "Completed",
-            },
-          },
-          { new: true, useFindAndModify: false }
-        );
-        res.status(200).send({
-          success: true,
-          msg: "updated successfully",
-          results: updateOrder,
-        });
+        status = "Completed";
+        remainingAmount = 0;
       } else {
+
         if (replacement && replacement.length > 0) {
-          const replacementTotalPriceSum = replacement.reduce(
+          replacementTotalPriceSum = replacement.reduce(
             (sum, repl) => sum + (repl.total_Price || 0),
             0
           );
-          remainingAmount =
-            total_amount - (replacementTotalPriceSum + advance_payment);
-          transactions = [
-            {
-              amount: replacementTotalPriceSum + advance_payment,
-              date: new Date(),
-              remark: remark,
-            },
-          ];
-        } else {
-          remainingAmount = total_amount - advance_payment;
-          transactions = [
-            {
-              amount: advance_payment,
-              date: new Date(),
-              remark: remark,
-            },
-          ];
         }
-        const updateOrder = await Order.findByIdAndUpdate(
-          req.params.id,
-          {
-            $set: {
-              customerName,
-              customerMobile,
-              address,
-              remark,
-              dispatch,
-              items,
-              replacement,
-              isFullPayment,
-              remainingAmount,
-              taxRate,
-              taxAmount,
-              subTotal,
-              total_amount,
-              advance_payment,
-              dueDate,
-              discount_amount,
-              transactions,
-              paymentType,
-              status: "Pending",
+        if (
+          lastOrder.status == "price_not_fixed" &&
+          lastOrder.remainingAmount == 0
+        ) {
+          totalTransactionsAmount = lastOrder.transactions.reduce(
+            (total, transaction) => {
+              return total + (transaction.amount || 0);
             },
-          },
-          { new: true, useFindAndModify: false }
-        );
-        res.status(200).send({
-          success: true,
-          msg: "updated successfully",
-          results: updateOrder,
+            0
+          );
+        }
+
+        totalCalculateRemaining =
+          advance_payment + totalTransactionsAmount + replacementTotalPriceSum;
+
+        remainingAmount = total_amount - totalCalculateRemaining;
+        transactionArray.push({
+          amount: replacementTotalPriceSum + advance_payment,
+          date: new Date(),
+          remark: remark,
         });
+
+        status = "Pending";
       }
-    } else {
-      const updateOrder = await Order.findByIdAndUpdate(
-        req.params.id,
-        {
-          $set: {
-            customerName,
-            customerMobile,
-            address,
-            remark,
-            items,
-            replacement,
-            isFullPayment,
-            taxRate,
-            taxAmount,
-            subTotal,
-            total_amount,
-            advance_payment,
-            dueDate,
-            discount_amount,
-            transactions,
-            paymentType,
-            status,
-          },
-        },
-        { new: true, useFindAndModify: false }
-      );
-      res.status(200).send({
-        success: true,
-        msg: "updated successfully",
-        results: updateOrder,
-      });
     }
+    // const resp = {
+    //   customerName,
+    //   customerMobile,
+    //   address,
+    //   remark,
+    //   items,
+    //   replacement,
+    //   isFullPayment,
+    //   taxRate,
+    //   taxAmount,
+    //   subTotal,
+    //   total_amount,
+    //   dueDate,
+    //   discount_amount,
+    //   transactions,
+    //   paymentType,
+    //   status,
+    //   remainingAmount,
+    //   advance_payment,
+    //   totalCalculateRemaining,
+    //   replacementTotalPriceSum,
+    // };
+    const updateOrder = await Order.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          ...req.body,
+          items,
+          replacement,
+          isFullPayment,
+          taxRate,
+          taxAmount,
+          subTotal,
+          total_amount,
+          advance_payment,
+          dueDate,
+          discount_amount,
+          transactions:transactionArray,
+          paymentType,
+          status,
+          remainingAmount,
+        },
+      },
+      { new: true, useFindAndModify: false }
+    );
+    res.status(200).send({
+      success: true,
+      msg: "updated successfully",
+      results: updateOrder,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
