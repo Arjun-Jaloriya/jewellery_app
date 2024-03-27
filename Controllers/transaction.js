@@ -1,7 +1,10 @@
 const moment = require("moment");
 const Order = require("../Models/Order");
 const nodemailer = require("nodemailer");
+const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
 
+// Load environment variables from the appropriate .env file
+require('dotenv').config({ path: envFile });
 const add_transaction = async (req, res) => {
   try {
     let {
@@ -731,6 +734,8 @@ const deleteTransaction = async (req, res) => {
     });
   }
 };
+
+
 module.exports = {
   add_transaction,
   get_transaction,
@@ -742,4 +747,5 @@ module.exports = {
   sendemail,
   edittransaction,
   deleteTransaction,
+  
 };
