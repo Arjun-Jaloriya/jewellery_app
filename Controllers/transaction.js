@@ -543,7 +543,7 @@ const sendemail = async (req, res) => {
 
       const mailOption = {
         from: process.env.SENDEMAIL,
-        to: process.env.TOEMAIL,
+        to: process.env.TOEMAIL.split(','),
         subject: `Date - ${moment().format(
           "DD-MM-YYYY"
         )} Pending Transaction Customers`,
@@ -636,28 +636,6 @@ const edittransaction = async (req, res) => {
         status = "Pending";
       }
     }
-    // const resp = {
-    //   customerName,
-    //   customerMobile,
-    //   address,
-    //   remark,
-    //   items,
-    //   replacement,
-    //   isFullPayment,
-    //   taxRate,
-    //   taxAmount,
-    //   subTotal,
-    //   total_amount,
-    //   dueDate,
-    //   discount_amount,
-    //   transactions,
-    //   paymentType,
-    //   status,
-    //   remainingAmount,
-    //   advance_payment,
-    //   totalCalculateRemaining,
-    //   replacementTotalPriceSum,
-    // };
     const updateOrder = await Order.findByIdAndUpdate(
       req.params.id,
       {
