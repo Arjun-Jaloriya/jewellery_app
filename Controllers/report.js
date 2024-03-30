@@ -74,7 +74,7 @@ const customReport = async (req, res) => {
       .skip((page - 1) * perpage)
       .limit(perpage)
       .sort({ date: -1 });
-      
+
     if (reportData.length) {
       const totalSumAmount = reportData.map((data) => {
         return data.total_amount;
@@ -86,16 +86,16 @@ const customReport = async (req, res) => {
         success: true,
         msg: `${startDate} to ${endDate} report fetched`,
         Total: allTotal,
-        count:count.length,
+        count: count.length,
         results: reportData,
       });
-    }else{
+    } else {
       res.status(200).send({
-        success:true,
-        msg:"data fetched",
-        count:count.length,
-        results:[]
-      })
+        success: true,
+        msg: "data fetched",
+        count: count.length,
+        results: [],
+      });
     }
   } catch (error) {
     console.log(error);
@@ -120,7 +120,7 @@ const exportexcel = async (req, res) => {
     const reportData = await Order.find({
       $and: [{ date: { $gte: startDateTime, $lte: endDateTime } }],
     });
-    if (reportData.length) {
+    if (reportData.length > 0) {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Report");
 
@@ -129,21 +129,23 @@ const exportexcel = async (req, res) => {
         { header: "Customer Name", key: "customerName", width: 20 },
         { header: "Customer Mobile", key: "customerMobile", width: 20 },
         { header: "Address", key: "address", width: 25 },
+        { header: "OrderNO", key: "orderNo", width: 15 },
         { header: "Is Full Payment", key: "isFullPayment", width: 20 },
-        { header: "Total Amount", key: "total_amount", width: 20 },
-        { header: "Advance Payment", key: "advance_payment", width: 20 },
-        { header: "Remaining Amount", key: "remainingAmount", width: 20 },
         { header: "Payment Type", key: "paymentType", width: 15 },
         { header: "Status", key: "status", width: 25 },
         { header: "Date", key: "date", width: 25 },
+        { header: "Delivery", key: "dispatch", width: 20 },
         { header: "Discount Amount", key: "discount_amount", width: 17 },
-        { header: "Discount Status", key: "discount_status", width: 25 },
+        // { header: "Discount Status", key: "discount_status", width: 25 },
         { header: "Item Quantity", key: "itemQuantity", width: 15 },
         {
           header: "Replacement Quantity",
           key: "replacementQuantity",
           width: 22,
         },
+        { header: "Total Amount", key: "total_amount", width: 20 },
+        { header: "Advance Payment", key: "advance_payment", width: 20 },
+        { header: "Remaining Amount", key: "remainingAmount", width: 20 },
       ];
 
       // Add data
@@ -152,6 +154,7 @@ const exportexcel = async (req, res) => {
           customerName: data.customerName,
           customerMobile: data.customerMobile,
           address: data.address,
+          orderNo: data.orderNo,
           itemQuantity: data.items.length,
           replacementQuantity: data.replacement.length,
           isFullPayment: data.isFullPayment,
@@ -160,9 +163,10 @@ const exportexcel = async (req, res) => {
           remainingAmount: data.remainingAmount,
           paymentType: data.paymentType,
           status: data.status,
-          date: moment(data.createdAt).toISOString(),
+          date: moment(data.date).toISOString(),
+          dispatch: data.dispatch,
           discount_amount: data.discount_amount,
-          discount_status: data.discount_status,
+          // discount_status: data.discount_status,
         });
       });
 
@@ -184,7 +188,7 @@ const exportexcel = async (req, res) => {
       res.status(200).send({
         success: true,
         msg: "no record found",
-        results:[]
+        results: [],
       });
     }
   } catch (error) {
