@@ -60,7 +60,7 @@ const OrderSchema = new mongoose.Schema(
     transactions: [
       {
         amount: { type: Number },
-        date: { type: Date },
+        date: { type: Date,default:new Date() },
         paymentType: {
           type: String,
           enum: ["cash", "card", "upi"],

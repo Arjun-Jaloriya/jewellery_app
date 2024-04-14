@@ -1,10 +1,11 @@
 const moment = require("moment");
 const Order = require("../Models/Order");
 const nodemailer = require("nodemailer");
-const envFile = process.env.NODE_ENV === 'development' ? '.env.development' : '.env';
+const envFile =
+  process.env.NODE_ENV === "development" ? ".env.development" : ".env";
 
 // Load environment variables from the appropriate .env file
-require('dotenv').config({ path: envFile });
+require("dotenv").config({ path: envFile });
 const add_transaction = async (req, res) => {
   try {
     let {
@@ -277,7 +278,11 @@ const Get_Allorders = async (req, res) => {
     const perpage = req.query.perpage ? req.query.perpage : 5;
     const page = req.query.page ? req.query.page : 1;
     const dispatch = req.query.dispatch ? req.query.dispatch : false;
-    const filterType = req.query.filterType ? req.query.filterType !== "all" ? req.query.filterType : undefined :undefined;
+    const filterType = req.query.filterType
+      ? req.query.filterType !== "all"
+        ? req.query.filterType
+        : undefined
+      : undefined;
     const count = await Order.find({
       $and: [
         {
@@ -453,28 +458,20 @@ const sendemail = async (req, res) => {
       },
       {
         $match: {
-          lastTransactionDate: {
-            $gte: new Date(
-              today.getFullYear(),
-              today.getMonth(),
-              today.getDate(),
-              0,
-              0,
-              0
-            ), // Start of today
-            $lt: new Date(
-              today.getFullYear(),
-              today.getMonth(),
-              today.getDate() + 1,
-              0,
-              0,
-              0
-            ), // Start of tomorrow
+          $expr: {
+            $and: [
+              {
+                $eq: [
+                  { $dayOfMonth: "$lastTransactionDate" },
+                  { $dayOfMonth: today },
+                ],
+              },
+            ],
           },
         },
       },
     ]);
-
+    console.log(arrayFind);
     if (arrayFind.length > 0) {
       const getRemainData = arrayFind.map((data) => {
         return {
@@ -543,7 +540,7 @@ const sendemail = async (req, res) => {
 
       const mailOption = {
         from: process.env.SENDEMAIL,
-        to: process.env.TOEMAIL.split(','),
+        to: process.env.TOEMAIL.split(","),
         subject: `Date - ${moment().format(
           "DD-MM-YYYY"
         )} Pending Transaction Customers`,
@@ -595,7 +592,6 @@ const edittransaction = async (req, res) => {
       replacementTotalPriceSum = 0,
       totalCalculateRemaining = 0,
       transactionArray = lastOrder.transactions || [];
-      
 
     advance_payment =
       advance_payment && advance_payment > 0 ? advance_payment : 0;
@@ -604,7 +600,6 @@ const edittransaction = async (req, res) => {
         status = "Completed";
         remainingAmount = 0;
       } else {
-
         if (replacement && replacement.length > 0) {
           replacementTotalPriceSum = replacement.reduce(
             (sum, repl) => sum + (repl.total_Price || 0),
@@ -651,7 +646,7 @@ const edittransaction = async (req, res) => {
           advance_payment,
           dueDate,
           discount_amount,
-          transactions:transactionArray,
+          transactions: transactionArray,
           paymentType,
           status,
           remainingAmount,
@@ -713,7 +708,6 @@ const deleteTransaction = async (req, res) => {
   }
 };
 
-
 module.exports = {
   add_transaction,
   get_transaction,
@@ -725,5 +719,4 @@ module.exports = {
   sendemail,
   edittransaction,
   deleteTransaction,
-  
 };

@@ -34,14 +34,16 @@ const addLoan = async (req, res) => {
       //   return res.send({ error: "transactions is required" });
       case !items:
         return res.send({ error: "items is required" });
-   
+
       case !loanCost:
         return res.send({ error: "loanCost is required" });
       case !interestRate:
         return res.send({ error: "interestRate is required" });
     }
 
-    const dailyInterest = Math.round((loanCost * interestRate) / 100 / 365);
+    // const dailyInterest = Math.round((loanCost * interestRate) / 100 / 365);
+    const dailyInterest = ((loanCost * interestRate) / 100 / 365).toFixed(1);
+    // console.log(dailyInterest);
 
     let adddata = await new Loan({
       customerName,
@@ -77,20 +79,22 @@ const addLoan = async (req, res) => {
 const updateinterest = async (req, res) => {
   try {
     const olddata = await Loan.findById(req.params.id);
-    const currentDate = new Date();
 
-    const daysElapsed = Math.ceil(
-      (currentDate.getDate() - olddata.lastUpdateDate.getDate()) /
-        (24 * 60 * 60 * 1000)
-    );
+    const currentDate = moment();
+    const lastUpdateDate = moment(olddata.lastUpdateDate);
+
+    // Calculate the difference in days
+    const daysElapsed = currentDate.diff(lastUpdateDate, "days");
 
     if (daysElapsed > 0) {
-      const dailyInterest =
-        (olddata.updatedLoanCost * olddata.interestRate) / 100 / 365;
-
-      const totalInterest = Math.floor(
-        olddata.updatedInterest + dailyInterest * daysElapsed
-      );
+      const dailyInterest = (
+        (olddata.updatedLoanCost * olddata.interestRate) /
+        100 /
+        365
+      ).toFixed(1);
+      
+      const totalInterest = parseFloat(dailyInterest) * daysElapsed;
+    
       const updatedata = await Loan.findByIdAndUpdate(
         req.params.id,
         {
@@ -128,7 +132,7 @@ const update_loantransaction = async (req, res) => {
   try {
     const { transaction } = req.body;
     let lastloandata = await Loan.findById(req.params.id);
-    
+
     if (
       transaction[0].amount <=
       lastloandata.updatedLoanCost + lastloandata.updatedInterest
@@ -397,16 +401,12 @@ const getLoanById = async (req, res) => {
   }
 };
 
-const deleteLoan = async(req,res)=>{
+const deleteLoan = async (req, res) => {
   try {
     const today = new Date();
     const LoanData = await Loan.find({
-      $or: [
-        { status: "Completed" },
-        { status: "closed with discount" }
-      ]
+      $or: [{ status: "Completed" }, { status: "closed with discount" }],
     });
-   
 
     if (LoanData.length > 0) {
       const modifiedDates = LoanData.map((record) => {
@@ -416,45 +416,45 @@ const deleteLoan = async(req,res)=>{
       });
 
       const todayDateString = today.toDateString();
-      
+
       // Find records to delete
       const recordsToDelete = LoanData.filter((record, index) => {
         return modifiedDates[index].toDateString() === todayDateString;
       });
 
       // Extract ids of records to delete
-      const idsToDelete = recordsToDelete.map(record => record._id);
+      const idsToDelete = recordsToDelete.map((record) => record._id);
 
       // Delete records
       const result = await Loan.deleteMany({ _id: { $in: idsToDelete } });
-
     }
   } catch (error) {
     console.log(error);
   }
 };
-const cancelLoan = async(req,res)=>{
+const cancelLoan = async (req, res) => {
   try {
-    const UpadateLoan = await Loan.findByIdAndUpdate(req.params.id,{
-      status:"Cancelled"
-    },{ new: true, useFindAndModify: false }
-    )
+    const UpadateLoan = await Loan.findByIdAndUpdate(
+      req.params.id,
+      {
+        status: "Cancelled",
+      },
+      { new: true, useFindAndModify: false }
+    );
     res.status(200).send({
-      success:true,
-      msg:"cancelled loan successfully",
-      results:UpadateLoan
-    })
-    
+      success: true,
+      msg: "cancelled loan successfully",
+      results: UpadateLoan,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
-      success:false,
-      msg:"error in cancel-Loan",
-      error
-
-    })
+      success: false,
+      msg: "error in cancel-Loan",
+      error,
+    });
   }
-}
+};
 module.exports = {
   addLoan,
   updateinterest,
@@ -464,5 +464,5 @@ module.exports = {
   // sendemail,
   getLoanById,
   deleteLoan,
-  cancelLoan
+  cancelLoan,
 };

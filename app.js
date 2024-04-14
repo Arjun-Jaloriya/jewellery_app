@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors  = require("cors");
 const bodyparser = require("body-parser");
-const dotenv = require("dotenv");
+// const dotenv = require("dotenv");
 const port = 8080 || process.env.PORT;
 require("./Config/db")
 // dotenv.config();
@@ -34,7 +34,8 @@ app.use("/api/emi",emiroutes);
 app.use("/api/loan",loanroutes);
 app.use("/api/report/",reportroute)
 
-cron.schedule("0 10 * * *", ()=>{
+
+cron.schedule("0 8 * * *", ()=>{
     sendemail()
 });
 cron.schedule("0 0 * * *",()=>{

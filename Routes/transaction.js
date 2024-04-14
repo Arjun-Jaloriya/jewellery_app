@@ -1,5 +1,5 @@
 const express = require("express");
-const { add_transaction ,get_transaction,update_transaction,Get_Allorders,pending_status,cancel_order,discount,edittransaction,deleteTransaction} = require("../Controllers/transaction");
+const { add_transaction ,get_transaction,update_transaction,Get_Allorders,pending_status,cancel_order,discount,edittransaction,deleteTransaction,sendemail} = require("../Controllers/transaction");
 const { issignin } = require("../Middleware/authmiddleware");
 const transactionrouter = express.Router();
 
@@ -17,6 +17,9 @@ transactionrouter.put("/discount/:id",issignin,discount);
 transactionrouter.put("/editTransaction/:id",issignin,edittransaction);
 //delete-transaction
 transactionrouter.delete("/deleteTransaction/:orderId/:transactionId",issignin,deleteTransaction);
+
+//email
+transactionrouter.get("/send-email",issignin,sendemail);
 
 
 
