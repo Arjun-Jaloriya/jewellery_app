@@ -80,21 +80,24 @@ const updateinterest = async (req, res) => {
   try {
     const olddata = await Loan.findById(req.params.id);
 
-    const currentDate = moment();
-    const lastUpdateDate = moment(olddata.lastUpdateDate);
+    const currentDate = moment().endOf('day');
+    // console.log(currentDate.format("DD-MM-YYYY hh:mm a"));
+
+    const lastUpdateDate = moment(olddata.lastUpdateDate).endOf('day');
+    // console.log(lastUpdateDate.format("DD-MM-YYYY hh:mm a"));
 
     // Calculate the difference in days
     const daysElapsed = currentDate.diff(lastUpdateDate, "days");
-
+    // console.log(daysElapsed);
     if (daysElapsed > 0) {
       const dailyInterest = (
         (olddata.updatedLoanCost * olddata.interestRate) /
         100 /
         365
       ).toFixed(1);
-      
+
       const totalInterest = parseFloat(dailyInterest) * daysElapsed;
-    
+
       const updatedata = await Loan.findByIdAndUpdate(
         req.params.id,
         {
