@@ -471,7 +471,7 @@ const sendemail = async (req, res) => {
         },
       },
     ]);
-    console.log(arrayFind);
+  
     if (arrayFind.length > 0) {
       const getRemainData = arrayFind.map((data) => {
         return {
