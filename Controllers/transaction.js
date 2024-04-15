@@ -115,6 +115,8 @@ const add_transaction = async (req, res) => {
             ];
             remainingAmount = total_amount - advance_payment;
           }
+        }else{
+          remainingAmount = total_amount;
         }
       }
       if (total_amount === 0) {
