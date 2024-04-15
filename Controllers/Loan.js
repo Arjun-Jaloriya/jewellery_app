@@ -42,7 +42,7 @@ const addLoan = async (req, res) => {
     }
 
     // const dailyInterest = Math.round((loanCost * interestRate) / 100 / 365);
-    const dailyInterest = ((loanCost * interestRate) / 100 / 365).toFixed(1);
+    // const dailyInterest = ((loanCost * interestRate) / 100 / 365).toFixed(1);
     // console.log(dailyInterest);
 
     let adddata = await new Loan({
@@ -54,8 +54,8 @@ const addLoan = async (req, res) => {
       loanCost,
       interestRate,
       transactions,
-      totalInterest: dailyInterest,
-      updatedInterest: dailyInterest,
+      totalInterest,
+      updatedInterest,
       startDate,
       lastUpdateDate: startDate,
       updatedLoanCost: loanCost,
@@ -80,15 +80,16 @@ const updateinterest = async (req, res) => {
   try {
     const olddata = await Loan.findById(req.params.id);
 
-    const currentDate = moment().endOf('day');
-    // console.log(currentDate.format("DD-MM-YYYY hh:mm a"));
+    const currentDate = moment().add(9,'days');
+    
+    console.log(currentDate.format("DD-MM-YYYY hh:mm a"));
 
-    const lastUpdateDate = moment(olddata.lastUpdateDate).endOf('day');
-    // console.log(lastUpdateDate.format("DD-MM-YYYY hh:mm a"));
+    const lastUpdateDate = moment(olddata.lastUpdateDate).startOf('day');
+    console.log(lastUpdateDate.format("DD-MM-YYYY hh:mm a"));
 
     // Calculate the difference in days
     const daysElapsed = currentDate.diff(lastUpdateDate, "days");
-    // console.log(daysElapsed);
+    console.log(daysElapsed);
     if (daysElapsed > 0) {
       const dailyInterest = (
         (olddata.updatedLoanCost * olddata.interestRate) /
@@ -102,7 +103,7 @@ const updateinterest = async (req, res) => {
         req.params.id,
         {
           totalInterest: totalInterest + olddata.totalInterest,
-          updatedInterest: totalInterest,
+          updatedInterest: totalInterest + olddata.updatedInterest,
           lastUpdateDate: currentDate,
         },
         { new: true, useFindAndModify: false }
@@ -163,14 +164,17 @@ const update_loantransaction = async (req, res) => {
         {
           $push: { transactions: transaction },
           $set: {
-            updatedLoanCost: updatedLoanCost,
-            updatedInterest: updatedTotalInterest,
+            updatedLoanCost: parseFloat(updatedLoanCost).toFixed(2),
+            updatedInterest: parseFloat(updatedTotalInterest).toFixed(2),
           },
         },
         { new: true, useFindAndModify: false }
       );
 
-      if (updatedLoanCost == 0) {
+      // console.log(updatedLoanCost);
+      // console.log(parseFloat(updatedLoanCost).toFixed(0));
+
+      if (parseFloat(updatedLoanCost).toFixed(0) <= 0) {
         let updatestatus = await Loan.findByIdAndUpdate(
           req.params.id,
           {
@@ -181,19 +185,19 @@ const update_loantransaction = async (req, res) => {
         return res.status(200).send({
           success: true,
           msg: "your Loan is closed",
-          resultStatus: updatestatus,
-          results: updateLoanTransaction,
+          results: updatestatus,
+          // results: updateLoanTransaction,
         });
       }
       return res.status(200).send({
         success: true,
-        msg: "successfully update loan-transaction",
+        msg: "successfully added loan transaction",
         results: updateLoanTransaction,
       });
     } else {
       return res.status(200).send({
         success: false,
-        msg: "please enter amount less than updatedLoanCost + updatedInterest",
+        msg: `please enter amount less than ${updatedLoanCost + lastloandata.updatedInterest}`,
       });
     }
   } catch (error) {
